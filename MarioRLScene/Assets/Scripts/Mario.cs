@@ -13,6 +13,8 @@ public class Mario : MonoBehaviour
 
     Vector3 targetRotation = Vector3.zero;
     
+    [HideInInspector]
+    public Action currentAction;
 
     void Awake()
     {
@@ -20,45 +22,33 @@ public class Mario : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     void FixedUpdate()
     {
         HandleMovement();
     }
 
-    #region
+    #region Movement
 
     void HandleMovement()
     {
         Vector3 movementVector = Vector3.zero;
         bool shouldMove = false;
-        if (Input.GetKey(KeyCode.UpArrow))
+        if (Input.GetKey(KeyCode.UpArrow) || currentAction.up)
         {
             movementVector += Vector3.forward;
             shouldMove = true;
         }
-        if (Input.GetKey(KeyCode.DownArrow))
+        if (Input.GetKey(KeyCode.DownArrow) || currentAction.down)
         {
             movementVector -= Vector3.forward;
             shouldMove = true;
         }
-        if (Input.GetKey(KeyCode.RightArrow))
+        if (Input.GetKey(KeyCode.RightArrow) || currentAction.right)
         {
             movementVector += Vector3.right;
             shouldMove = true;
         }
-        if (Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.LeftArrow) || currentAction.left)
         {
             movementVector -= Vector3.right;
             shouldMove = true;
@@ -110,7 +100,7 @@ public class Mario : MonoBehaviour
 
     #endregion
 
-    #region 
+    #region Collision
 
     void OnTriggerEnter(Collider other) {
          if (other.tag == Tags.coin) {
@@ -119,5 +109,28 @@ public class Mario : MonoBehaviour
      }
 
     #endregion
+
+    #region State
+
+    void OnEnable()
+    {
+        Environment.ResetState += Reset;
+    }
+
+
+    void OnDisable()
+    {
+        Environment.ResetState -= Reset;
+    }
+
+
+    void Reset()
+    {
+        RotateTowardsVector(Vector3.forward);
+        currentAction = new Action();
+    }
+
+    #endregion
+
 
 }

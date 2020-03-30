@@ -13,20 +13,34 @@ public class Environment : MonoBehaviour
     public float minZ = -4;
     public float maxZ = 4;
 
+    float updateFrequency = 0.02f;
+    float lastUpdateTime = 0;
+
     public delegate void ResetAction();
     public static event ResetAction ResetState;
 
     void Start()
     {
-        Setup();
+        Reset();
     }
 
     void Update()
     {
-        if (Input.GetKey(KeyCode.R))
+        if (Input.GetKeyUp(KeyCode.R))
         {
             Reset();
+            return;
         }
+
+        if  (Time.time - lastUpdateTime > updateFrequency) 
+        {
+            SetAgentAction();
+            HandleGameState();
+            WriteDistance();
+            
+            lastUpdateTime = Time.time;
+        }
+        
     }
 
     void Setup()
@@ -34,8 +48,8 @@ public class Environment : MonoBehaviour
         Vector3 randomPosition = new Vector3(Random.Range(minX, maxX), 0, Random.Range(minZ, maxZ));
         coin.transform.position = randomPosition;
         randomPosition = new Vector3(Random.Range(minX, maxX), 0, Random.Range(minZ, maxZ));
-        float dist = Vector3.Distance(coin.transform.position, randomPosition);
-        if (dist < 2)
+        float distance = Vector3.Distance(coin.transform.position, randomPosition);
+        if (distance < 2)
         {
             if (maxX - coin.transform.position.x > 2)
             {
@@ -50,11 +64,42 @@ public class Environment : MonoBehaviour
 
     void Reset()
     {
+        Pipeline.ClearAction();
         Setup();
         if (ResetState != null)
         {
             ResetState();
         }
+        Pipeline.WriteGameStarted();
     }
+
+    #region I/O
+
+    void HandleGameState()
+    {
+        bool isGameOver = Pipeline.ReadIsGameOver();
+        if (isGameOver)
+        {
+            Reset();
+        }
+    }
+
+    void SetAgentAction()
+    {
+        Action action = Pipeline.ReadAction();
+        mario.currentAction = action;
+    }
+
+    void WriteDistance()
+    {
+        Vector2 v0 = new Vector2(coin.transform.position.x, coin.transform.position.z);
+        Vector2 v1 = new Vector2(mario.transform.position.x, mario.transform.position.z);
+        float distance = Vector2.Distance(v0, v1);
+        Observation obs = new Observation(distance);
+
+        Pipeline.WriteObservation(obs);
+    }
+
+    #endregion
 
 }

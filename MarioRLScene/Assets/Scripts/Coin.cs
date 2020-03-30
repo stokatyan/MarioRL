@@ -6,10 +6,12 @@ public class Coin : MonoBehaviour
 {
 
     float originalHeight = 0;
+    MeshRenderer m_renderer;
 
     void Awake()
     {
         originalHeight = transform.position.y;
+        m_renderer = GetComponent<MeshRenderer>();
     }
 
     void Update()
@@ -23,8 +25,25 @@ public class Coin : MonoBehaviour
 
     void OnTriggerEnter(Collider other) {
          if (other.tag == Tags.mario) {
-             gameObject.SetActive(false);
+             m_renderer.enabled = false;
          }
      }
+
+    void OnEnable()
+    {
+        Environment.ResetState += Reset;
+    }
+
+
+    void OnDisable()
+    {
+        Environment.ResetState -= Reset;
+    }
+
+
+    void Reset()
+    {
+        m_renderer.enabled = true;
+    }
 
 }
