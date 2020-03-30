@@ -74,8 +74,8 @@ def read_screenshot(should_flatten=False):
     sct_img = ss.take_screenshot()
     im = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
     im = im.convert("L")
-    im = im.resize((20, 200))
-    data = asarray(im).T.reshape(20, 200, 1)
+    im = im.resize((100, 65))
+    data = asarray(im).T.reshape(100, 65, 1)
     data = data/255
     if should_flatten:
         data = data.flatten()
@@ -86,7 +86,7 @@ def read_screenshot(should_flatten=False):
 def debug_screenshot(size=None):
     sct_img = ss.take_screenshot()
     im = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
-    im = im.convert("L")
+    # im = im.convert("L")
     if size is not None:
         im = im.resize(size)
     im.show()
