@@ -127,6 +127,7 @@ public class Mario : MonoBehaviour
     void Reset()
     {
         RotateTowardsVector(Vector3.forward);
+        currentAction = new Action();
     }
 
     #endregion

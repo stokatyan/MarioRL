@@ -63,12 +63,12 @@ def write_action(values):
     file.close()    
 
 
-def write_reset_game():
-    file = open(f'{path}{action_file}', 'w')
-    file.write('{"action":2}')
+def write_gameover():
+    file = open(f'{path}{gamestate_file}', 'w')
+    file.write('{"gameover":1}')
     
     file.close()
-
+    
 
 def read_screenshot(should_flatten=False):
     sct_img = ss.take_screenshot()

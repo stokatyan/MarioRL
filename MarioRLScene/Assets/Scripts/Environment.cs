@@ -34,8 +34,10 @@ public class Environment : MonoBehaviour
 
         if  (Time.time - lastUpdateTime > updateFrequency) 
         {
-            WriteDistance();
             SetAgentAction();
+            HandleGameState();
+            WriteDistance();
+            
             lastUpdateTime = Time.time;
         }
         
@@ -68,9 +70,19 @@ public class Environment : MonoBehaviour
         {
             ResetState();
         }
+        Pipeline.WriteGameStarted();
     }
 
     #region I/O
+
+    void HandleGameState()
+    {
+        bool isGameOver = Pipeline.ReadIsGameOver();
+        if (isGameOver)
+        {
+            Reset();
+        }
+    }
 
     void SetAgentAction()
     {
