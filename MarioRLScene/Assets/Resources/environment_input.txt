@@ -1,1 +1,1 @@
-{"left": false, "right": false, "up": false, "down": false}
+{"left": true, "right": false, "up": false, "down": false}

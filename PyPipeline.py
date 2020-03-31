@@ -57,7 +57,7 @@ def write_action(values):
             if val == 0:
                 actions[directions[index]] = False
             else:
-                actions[directions[index]] = False#True
+                actions[directions[index]] = True
 
     json_str = json.dumps(actions)
     

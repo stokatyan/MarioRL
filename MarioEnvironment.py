@@ -88,12 +88,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     else:
       reward -= 30
 
-    print(f'd: {distance}, p: {prev_distance}, reward: {reward}')
-
     discount = 1 # (self.game_duration - time_elapsed) / self.game_duration
     obs = self.get_im_observation()
-
-    # print(f'distance: {distance}, minDist: {self.min_distance}, reward: {reward}')
 
     if time_elapsed > self.game_duration:
       self.reset()
