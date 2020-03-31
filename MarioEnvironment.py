@@ -25,7 +25,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
   def __init__(self):
     self._action_spec = array_spec.BoundedArraySpec(
-        shape=(4,), dtype=np.int32, minimum=0, maximum=1, name='action')
+        shape=(1,), dtype=np.int32, minimum=0, maximum=3, name='action')
     self._observation_spec = array_spec.BoundedArraySpec(
         shape=(100, 65, 3), dtype=np.float32, minimum=0, maximum=1, name='observation')
     self.OBS_DISTANCE = 'distance'
@@ -53,16 +53,24 @@ class MarioEnvironment(py_environment.PyEnvironment):
     pp.write_gameover()
     time.sleep(self.sleep_time)
 
+    self.prev_vector_obs = [12]
+    self.min_distance = 12
+
     obs = self.get_im_observation()
 
     return ts.restart(obs)
 
   def _step(self, action):
-    pp.write_action(action)
+    one_hot_action = self.get_one_hot(action)[0]
+    pp.write_action(one_hot_action)
 
     time.sleep(self.sleep_time)
+
+    prev_distance = self.prev_vector_obs[0]
     vector_obs = self.get_observation()
     distance = vector_obs[0]
+    
+    self.prev_vector_obs = vector_obs
 
     did_collect = False
     if distance < 1:
@@ -75,17 +83,24 @@ class MarioEnvironment(py_environment.PyEnvironment):
     if distance < self.min_distance:
         reward = 100
         self.min_distance = distance
+    elif distance < prev_distance:
+        reward += 20
+    else:
+      reward -= 30
+
+    print(f'd: {distance}, p: {prev_distance}, reward: {reward}')
 
     discount = 1 # (self.game_duration - time_elapsed) / self.game_duration
+    obs = self.get_im_observation()
 
-    obs = self.stacked_image_obs()
+    # print(f'distance: {distance}, minDist: {self.min_distance}, reward: {reward}')
 
     if time_elapsed > self.game_duration:
       self.reset()
       timestep = ts.termination(obs, reward=reward)
     elif did_collect:
       self.reset()
-      timestep = ts.termination(obs, reward=5000)
+      timestep = ts.termination(obs, reward=500)
     else:
       timestep = ts.transition(obs, reward=reward, discount=discount)        
 
@@ -96,15 +111,18 @@ class MarioEnvironment(py_environment.PyEnvironment):
     obs = self.prev_vector_obs
 
     if self.OBS_DISTANCE in obs_dict:
-        obs[0] = obs_dict[self.OBS_DISTANCE]
+      obs[0] = obs_dict[self.OBS_DISTANCE]
 
-    self.prev_vector_obs = obs
-    return self.prev_vector_obs
+    return obs
 
   def get_im_observation(self):
     image_obs = pp.read_screenshot()
-    obs = np.array([image_obs], dtype=np.float32)
+    obs = np.array(image_obs, dtype=np.float32)
     return obs
+
+  def get_one_hot(self, target):
+    res = np.eye(4)[target]
+    return res
 
 #   def init_prev_observations(self, image_obs):
 #     if self.prev_img_obs0 is None:

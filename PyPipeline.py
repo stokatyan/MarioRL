@@ -48,12 +48,16 @@ def write_action(values):
     kUp = 'up'
     kDown = 'down'
 
+    directions = [kLeft, kRight, kUp, kDown]
+
     actions = {}
     if len(values) is 4:
-        actions[kLeft] = values[0] is 1
-        actions[kRight] = values[1] is 1
-        actions[kUp] = values[2] is 1
-        actions[kDown] = values[3] is 1
+        for index in range(4):
+            val = values[index]
+            if val == 0:
+                actions[directions[index]] = False
+            else:
+                actions[directions[index]] = False#True
 
     json_str = json.dumps(actions)
     
@@ -73,9 +77,9 @@ def write_gameover():
 def read_screenshot(should_flatten=False):
     sct_img = ss.take_screenshot()
     im = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
-    im = im.convert("L")
+    # im = im.convert("L")
     im = im.resize((100, 65))
-    data = asarray(im).T.reshape(100, 65, 1)
+    data = asarray(im).T.reshape(100, 65, 3)
     data = data/255
     if should_flatten:
         data = data.flatten()
