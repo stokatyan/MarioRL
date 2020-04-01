@@ -13,7 +13,7 @@ public class Environment : MonoBehaviour
     public float minZ = -4;
     public float maxZ = 4;
 
-    float updateFrequency = 0.02f;
+    float updateFrequency = 0.1f;
     float lastUpdateTime = 0;
 
     public delegate void ResetAction();

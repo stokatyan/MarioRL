@@ -42,7 +42,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_COIN_Y = 4
 
     self.start_time = time.time()
-    self.sleep_time = 0.1
+    self.sleep_time = 0.2
     self.game_duration = 8
     self.prev_vector_obs = np.array([12, 0, 0, 0, 0], dtype=np.float32)
     self.min_distance = 12
@@ -84,7 +84,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_vector_obs = obs
 
     did_collect = False
-    if distance < 1:
+    if distance < 0.8:
       did_collect = True
 
     timestep = None
