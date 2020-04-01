@@ -32,28 +32,12 @@ except:
   pass 
 
 
-tf_agent = SACAgent.create_agent()
-tf_agent.initialize()
+tf_agent = SACAgent.restore_agent()
 
 eval_env = SACAgent.eval_env
 eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
 
-replay_buffer = SACAgent.create_replay_buffer(tf_agent)
-
-checkpoint_dir = "checkpoint"
-train_checkpointer = common.Checkpointer(
-    ckpt_dir=checkpoint_dir,
-    max_to_keep=1,
-    agent=tf_agent,
-    policy=tf_agent.policy,
-    replay_buffer=replay_buffer,
-    global_step=SACAgent.global_step
-)
-
-train_checkpointer.initialize_or_restore()
-global_step = tf.compat.v1.train.get_global_step()
-
-print('Running old model ...')
+print('Running agent from restored checkpoint ...')
 
 time_step = eval_env.reset()
 while True:

@@ -52,6 +52,22 @@ def normal_projection_net(action_spec,init_means_output_factor=0.1):
       scale_distribution=True)
 
 
+def restore_agent():
+  tf_agent = create_agent()
+  tf_agent.initialize()
+
+  replay_buffer = create_replay_buffer(tf_agent)
+
+  train_checkpointer = create_checkpointer(
+      max_to_keep=1,
+      agent=tf_agent,
+      replay_buffer=replay_buffer
+  )
+
+  train_checkpointer.initialize_or_restore()
+  return tf_agent
+
+
 def create_agent():
   critic_learning_rate = 3e-4 # @param {type:"number"}
   actor_learning_rate = 3e-4 # @param {type:"number"}
@@ -107,6 +123,17 @@ def create_replay_buffer(agent):
       data_spec=agent.collect_data_spec,
       batch_size=train_env.batch_size,
       max_length=replay_buffer_capacity)
+
+
+def create_checkpointer(max_to_keep, agent, replay_buffer):
+  return common.Checkpointer(
+    ckpt_dir="checkpoint",
+    max_to_keep=1,
+    agent=agent,
+    policy=agent.policy,
+    replay_buffer=replay_buffer,
+    global_step=global_step
+  )
 
 
 def compute_avg_return(environment, policy, num_episodes=5):
@@ -170,16 +197,10 @@ def train():
       observers=[replay_buffer.add_batch],
       num_steps=collect_steps_per_iteration)
 
-
-  checkpoint_dir = "checkpoint"
-  train_checkpointer = common.Checkpointer(
-      ckpt_dir=checkpoint_dir,
-      max_to_keep=1,
-      agent=tf_agent,
-      policy=tf_agent.policy,
-      replay_buffer=replay_buffer,
-      global_step=global_step
-  )
+  train_checkpointer = create_checkpointer(
+    max_to_keep=1, 
+    agent=tf_agent, 
+    replay_buffer=replay_buffer)
 
   train_checkpointer.initialize_or_restore()
 
