@@ -12,6 +12,7 @@ from tf_agents.environments import tf_py_environment
 from tf_agents.eval import metric_utils
 from tf_agents.metrics import tf_metrics
 from tf_agents.networks import q_network
+from tf_agents.networks import q_rnn_network
 from tf_agents.policies import greedy_policy
 from tf_agents.policies import random_tf_policy
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
@@ -37,11 +38,11 @@ except:
 
 num_iterations = 150000 # @param {type:"integer"}
 
-initial_collect_steps = 1000 # @param {type:"integer"} 
-collect_steps_per_iteration = 1 # @param {type:"integer"}
-replay_buffer_capacity = 10000 # @param {type:"integer"}
+initial_collect_steps = 10000 # @param {type:"integer"} 
+collect_steps_per_iteration = 5 # @param {type:"integer"}
+replay_buffer_capacity = 50000 # @param {type:"integer"}
 
-batch_size = 150 # @param {type:"integer"}
+batch_size = 1000 # @param {type:"integer"}
 
 critic_learning_rate = 3e-4 # @param {type:"number"}
 actor_learning_rate = 3e-4 # @param {type:"number"}
@@ -52,7 +53,6 @@ gamma = 0.99 # @param {type:"number"}
 reward_scale_factor = 1.0 # @param {type:"number"}
 gradient_clipping = None # @param
 
-conv_layer_params = [(8, 3, 2), (16, 3, 2)]
 fc_layer_params = (50, 50)
 
 log_interval = 500 # @param {type:"integer"}
@@ -70,11 +70,14 @@ eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 observation_spec = train_env.observation_spec()
 action_spec = train_env.action_spec()
 
-q_net = q_network.QNetwork(
+# q_net = q_network.QNetwork(
+    # observation_spec,
+    # action_spec,
+#     fc_layer_params=fc_layer_params)
+q_net = q_rnn_network.QRnnNetwork(
     observation_spec,
     action_spec,
-    conv_layer_params=conv_layer_params,
-    fc_layer_params=fc_layer_params)
+)
 
 optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
 
@@ -102,11 +105,13 @@ def compute_avg_return(environment, policy, num_episodes=5):
   for _ in range(num_episodes):
 
     time_step = environment.reset()
+    policy_state = policy.get_initial_state(environment.batch_size)
+
     episode_return = 0.0
 
     while not time_step.is_last():
-      action_step = policy.action(time_step)
-      time_step = environment.step(action_step.action)
+      action, policy_state, info = policy.action(time_step, policy_state)
+      time_step = environment.step(action)
       episode_return += time_step.reward
     total_return += episode_return
 
