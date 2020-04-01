@@ -103,11 +103,11 @@ public class Observation
 public class Action
 {
     [SerializeField]
-    public bool left = false;
+    public float left = 0;
     [SerializeField]
-    public bool right = false;
+    public float right = 0;
     [SerializeField]
-    public bool up = false;
+    public float up = 0;
     [SerializeField]
-    public bool down = false;
+    public float down = 0;
 }

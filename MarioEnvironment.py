@@ -25,7 +25,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
   def __init__(self):
     self._action_spec = array_spec.BoundedArraySpec(
-        shape=(1,), dtype=np.int32, minimum=0, maximum=3, name='action')
+        shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
     self._observation_spec = array_spec.BoundedArraySpec(
         shape=(5,), dtype=np.float32, 
         minimum=[0.0, -4.5, -4.5, -4.5, -4.5], 
@@ -73,8 +73,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     return ts.restart(obs)
 
   def _step(self, action):
-    one_hot_action = self.get_one_hot(action)[0]
-    pp.write_action(one_hot_action)
+    # one_hot_action = self.get_one_hot(action)[0]
+    pp.write_action(action)
 
     time.sleep(self.sleep_time)
 
@@ -99,7 +99,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     else:
       reward -= 30
 
-    discount = 1 # (self.game_duration - time_elapsed) / self.game_duration
+    discount = (self.game_duration - time_elapsed) / self.game_duration
     
     if time_elapsed > self.game_duration:
       self.reset()

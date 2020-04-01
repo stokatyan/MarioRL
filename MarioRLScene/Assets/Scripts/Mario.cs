@@ -20,6 +20,7 @@ public class Mario : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+        
     }
 
     void FixedUpdate()
@@ -32,26 +33,28 @@ public class Mario : MonoBehaviour
     void HandleMovement()
     {
         Vector3 movementVector = Vector3.zero;
-        bool shouldMove = false;
-        if (Input.GetKey(KeyCode.UpArrow) || currentAction.up)
+        bool shouldMove = true;
+
+        movementVector += Vector3.forward * currentAction.up;
+        movementVector -= Vector3.forward * currentAction.down;
+        movementVector += Vector3.right * currentAction.right;
+        movementVector -= Vector3.right * currentAction.left;
+
+        if (Input.GetKey(KeyCode.UpArrow))
         {
             movementVector += Vector3.forward;
-            shouldMove = true;
         }
-        if (Input.GetKey(KeyCode.DownArrow) || currentAction.down)
+        if (Input.GetKey(KeyCode.DownArrow))
         {
             movementVector -= Vector3.forward;
-            shouldMove = true;
         }
-        if (Input.GetKey(KeyCode.RightArrow) || currentAction.right)
+        if (Input.GetKey(KeyCode.RightArrow))
         {
             movementVector += Vector3.right;
-            shouldMove = true;
         }
-        if (Input.GetKey(KeyCode.LeftArrow) || currentAction.left)
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
             movementVector -= Vector3.right;
-            shouldMove = true;
         }
         if (movementVector == Vector3.zero)
         {
