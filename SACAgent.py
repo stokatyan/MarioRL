@@ -54,7 +54,6 @@ gamma = 0.99 # @param {type:"number"}
 reward_scale_factor = 1.0 # @param {type:"number"}
 gradient_clipping = None # @param
 
-conv_layer_params = [(8, 3, 2), (16, 3, 2)]
 actor_fc_layer_params = (50, 50)
 critic_joint_fc_layer_params = (50, 50)
 
@@ -74,7 +73,6 @@ observation_spec = train_env.observation_spec()
 action_spec = train_env.action_spec()
 critic_net = critic_network.CriticNetwork(
     (observation_spec, action_spec),
-    observation_conv_layer_params=conv_layer_params,
     observation_fc_layer_params=None,
     action_fc_layer_params=None,
     joint_fc_layer_params=critic_joint_fc_layer_params)
@@ -93,7 +91,6 @@ def normal_projection_net(action_spec,init_means_output_factor=0.1):
 actor_net = actor_distribution_network.ActorDistributionNetwork(
     observation_spec,
     action_spec,
-    conv_layer_params=conv_layer_params,
     fc_layer_params=actor_fc_layer_params,
     continuous_projection_net=normal_projection_net)
 

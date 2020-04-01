@@ -36,7 +36,7 @@ public class Environment : MonoBehaviour
         {
             SetAgentAction();
             HandleGameState();
-            WriteDistance();
+            WriteObservation();
             
             lastUpdateTime = Time.time;
         }
@@ -90,12 +90,16 @@ public class Environment : MonoBehaviour
         mario.currentAction = action;
     }
 
-    void WriteDistance()
+    void WriteObservation()
     {
-        Vector2 v0 = new Vector2(coin.transform.position.x, coin.transform.position.z);
-        Vector2 v1 = new Vector2(mario.transform.position.x, mario.transform.position.z);
-        float distance = Vector2.Distance(v0, v1);
-        Observation obs = new Observation(distance);
+        Vector2 coinVector = new Vector2(coin.transform.position.x, coin.transform.position.z);
+        Vector2 marioVector = new Vector2(mario.transform.position.x, mario.transform.position.z);
+        float distance = Vector2.Distance(coinVector, marioVector);
+
+        float[] marioPosition = {marioVector.x, marioVector.y};
+        float[] coinPosition = {coinVector.x, coinVector.y};
+
+        Observation obs = new Observation(distance, marioPosition, coinPosition);
 
         Pipeline.WriteObservation(obs);
     }

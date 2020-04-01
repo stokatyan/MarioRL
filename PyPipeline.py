@@ -54,10 +54,7 @@ def write_action(values):
     if len(values) is 4:
         for index in range(4):
             val = values[index]
-            if val == 0:
-                actions[directions[index]] = False
-            else:
-                actions[directions[index]] = True
+            actions[directions[index]] = float(val)
 
     json_str = json.dumps(actions)
     

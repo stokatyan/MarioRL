@@ -85,9 +85,17 @@ public class Observation
     [SerializeField]
     public float distance = 0;
 
-    public Observation(float distance)
+    [SerializeField]
+    public float[] marioPosition = new float[2];
+
+    [SerializeField]
+    public float[] coinPosition = new float[2];
+
+    public Observation(float distance, float[] marioPosition, float[] coinPosition)
     {
         this.distance = distance;
+        this.marioPosition = marioPosition;
+        this.coinPosition = coinPosition;
     }
 }
 
@@ -95,11 +103,11 @@ public class Observation
 public class Action
 {
     [SerializeField]
-    public bool left = false;
+    public float left = 0;
     [SerializeField]
-    public bool right = false;
+    public float right = 0;
     [SerializeField]
-    public bool up = false;
+    public float up = 0;
     [SerializeField]
-    public bool down = false;
+    public float down = 0;
 }
