@@ -52,7 +52,7 @@ def normal_projection_net(action_spec,init_means_output_factor=0.1):
       scale_distribution=True)
 
 
-def restore_agent():
+def restore_agent(ckpt_dir="checkpoint"):
   tf_agent = create_agent()
   tf_agent.initialize()
 
@@ -61,11 +61,12 @@ def restore_agent():
   train_checkpointer = create_checkpointer(
       max_to_keep=1,
       agent=tf_agent,
-      replay_buffer=replay_buffer
+      replay_buffer=replay_buffer,
+      ckpt_dir="checkpoint"
   )
 
   train_checkpointer.initialize_or_restore()
-  return tf_agent
+  return tf_agent, train_checkpointer
 
 
 def create_agent():
@@ -125,10 +126,10 @@ def create_replay_buffer(agent):
       max_length=replay_buffer_capacity)
 
 
-def create_checkpointer(max_to_keep, agent, replay_buffer):
+def create_checkpointer(max_to_keep, agent, replay_buffer, ckpt_dir="checkpoint"):
   return common.Checkpointer(
-    ckpt_dir="checkpoint",
-    max_to_keep=1,
+    ckpt_dir=ckpt_dir,
+    max_to_keep=max_to_keep,
     agent=agent,
     policy=agent.policy,
     replay_buffer=replay_buffer,
@@ -154,27 +155,22 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 
 def train():
-  num_iterations = 100000 # @param {type:"integer"}
+  num_iterations = 20000 # @param {type:"integer"}
 
   initial_collect_steps = 1000 # @param {type:"integer"} 
   collect_steps_per_iteration = 1 # @param {type:"integer"}
-  
 
   batch_size = 150 # @param {type:"integer"}
   log_interval = 500 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
-  eval_interval = 2000 # @param {type:"integer"}
-
+  eval_interval = 4000 # @param {type:"integer"}
 
   tf_agent = create_agent()
   tf_agent.initialize()
 
   eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
   collect_policy = tf_agent.collect_policy
-
-
-  
 
   replay_buffer = create_replay_buffer(tf_agent)
 
@@ -198,7 +194,7 @@ def train():
       num_steps=collect_steps_per_iteration)
 
   train_checkpointer = create_checkpointer(
-    max_to_keep=1, 
+    max_to_keep=5, 
     agent=tf_agent, 
     replay_buffer=replay_buffer)
 

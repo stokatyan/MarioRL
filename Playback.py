@@ -1,21 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import tensorflow as tf
-
-from tf_agents.agents.ddpg import critic_network
-from tf_agents.agents.sac import sac_agent
-from tf_agents.drivers import dynamic_step_driver
-from tf_agents.environments import suite_pybullet
-from tf_agents.environments import tf_py_environment
-from tf_agents.eval import metric_utils
-from tf_agents.metrics import tf_metrics
-from tf_agents.networks import actor_distribution_network
-from tf_agents.networks import normal_projection_network
 from tf_agents.policies import greedy_policy
-from tf_agents.policies import random_tf_policy
-from tf_agents.replay_buffers import tf_uniform_replay_buffer
-from tf_agents.trajectories import trajectory
-from tf_agents.utils import common
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -32,12 +18,12 @@ except:
   pass 
 
 
-tf_agent = SACAgent.restore_agent()
+tf_agent, checkpointer = SACAgent.restore_agent(ckpt_dir="checkpoint")
 
 eval_env = SACAgent.eval_env
 eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
 
-print('Running agent from restored checkpoint ...')
+print(f'Running agent from restored checkpoint: {checkpointer._manager.latest_checkpoint} ...')
 
 time_step = eval_env.reset()
 while True:
