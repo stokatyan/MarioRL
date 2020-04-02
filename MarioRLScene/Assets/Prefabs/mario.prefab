@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 8296172667701339999}
   m_Layer: 0
   m_Name: mario
-  m_TagString: Untagged
+  m_TagString: mario
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -164,6 +164,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movementForce: 35
   rotationSpeed: 10
+  currentAction:
+    left: 0
+    right: 0
+    up: 0
+    down: 0
 --- !u!54 &8296172667701339997
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -178,7 +183,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 36
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!136 &8296172667701339999
 CapsuleCollider:
@@ -190,7 +195,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 1.7232385
+  m_Radius: 5
   m_Height: 14.261522
   m_Direction: 1
   m_Center: {x: 0, y: 8.151543, z: 0.39672613}
