@@ -84,7 +84,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_vector_obs = obs
 
     did_collect = False
-    if distance < 0.8:
+    if distance < 0.9:
       did_collect = True
 
     timestep = None
