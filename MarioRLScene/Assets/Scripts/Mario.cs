@@ -5,7 +5,7 @@ using UnityEngine;
 public class Mario : MonoBehaviour
 {
 
-    public float movementForce = 5f;
+    public float movementForce;
     public float rotationSpeed;
 
     Rigidbody rb;
@@ -59,7 +59,13 @@ public class Mario : MonoBehaviour
             shouldMove = false;
         }
 
-        animator.SetBool(AnimationKeys.isMoving, shouldMove);
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            movementVector /= 2;
+        }
+
+        animator.SetFloat(AnimationKeys.moveSpeed, movementVector.magnitude);
+
         if (shouldMove)
         {
             rb.AddForce(movementVector * movementForce);

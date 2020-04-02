@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class AnimationKeys : MonoBehaviour
 {
-    public const string isMoving = "isMoving";
+    public const string moveSpeed = "moveSpeed";
 }

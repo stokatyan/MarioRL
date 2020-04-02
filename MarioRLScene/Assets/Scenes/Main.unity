@@ -465,11 +465,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: mario
       objectReference: {fileID: 0}
-    - target: {fileID: 1153956372135022039, guid: bb0456bbd53854d309e35b374e209d21,
-        type: 3}
-      propertyPath: m_TagString
-      value: mario
-      objectReference: {fileID: 0}
     - target: {fileID: 2763227666663276484, guid: bb0456bbd53854d309e35b374e209d21,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -524,21 +519,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8296172667701339997, guid: bb0456bbd53854d309e35b374e209d21,
-        type: 3}
-      propertyPath: m_Constraints
-      value: 116
-      objectReference: {fileID: 0}
-    - target: {fileID: 8296172667701339999, guid: bb0456bbd53854d309e35b374e209d21,
-        type: 3}
-      propertyPath: m_Radius
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2726663252206900837, guid: bb0456bbd53854d309e35b374e209d21,
-        type: 3}
-      propertyPath: rotationSpeed
-      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bb0456bbd53854d309e35b374e209d21, type: 3}
