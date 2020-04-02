@@ -5,13 +5,11 @@ using UnityEngine;
 public class Mario : MonoBehaviour
 {
 
-    public float movementForce = 5f;
+    public float movementForce;
     public float rotationSpeed;
 
     Rigidbody rb;
     Animator animator;
-
-    Vector3 targetRotation = Vector3.zero;
     
     [HideInInspector]
     public Action currentAction;
@@ -61,7 +59,13 @@ public class Mario : MonoBehaviour
             shouldMove = false;
         }
 
-        animator.SetBool(AnimationKeys.isMoving, shouldMove);
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            movementVector /= 2;
+        }
+
+        animator.SetFloat(AnimationKeys.moveSpeed, movementVector.magnitude);
+
         if (shouldMove)
         {
             rb.AddForce(movementVector * movementForce);
@@ -75,26 +79,9 @@ public class Mario : MonoBehaviour
 
     void RotateTowardsVector(Vector3 vector)
     {
-        if (vector == targetRotation)
-        {
-            return;
-        }
-
-        targetRotation = vector;
         Quaternion lookRotation = Quaternion.LookRotation(vector); 
-        StartCoroutine(RotateTo(lookRotation));
+        rb.MoveRotation(Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed));
     }
-
-    IEnumerator RotateTo(Quaternion target) {
-        Quaternion from = transform.rotation;
-        for ( float t = 0f; t < 1f; t += rotationSpeed*Time.deltaTime) {
-            transform.rotation = Quaternion.Lerp(from, target, t);
-            yield return null;
-        }
-        transform.rotation = target;
-    }
-
-    
 
     public void SetPosition(Vector3 position)
     {
