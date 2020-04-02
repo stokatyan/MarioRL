@@ -155,7 +155,7 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 
 def train():
-  num_iterations = 20000 # @param {type:"integer"}
+  num_iterations = 30000 # @param {type:"integer"}
 
   initial_collect_steps = 1000 # @param {type:"integer"} 
   collect_steps_per_iteration = 1 # @param {type:"integer"}
@@ -164,7 +164,7 @@ def train():
   log_interval = 500 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
-  eval_interval = 4000 # @param {type:"integer"}
+  eval_interval = 5000 # @param {type:"integer"}
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -194,7 +194,7 @@ def train():
       num_steps=collect_steps_per_iteration)
 
   train_checkpointer = create_checkpointer(
-    max_to_keep=5, 
+    max_to_keep=10, 
     agent=tf_agent, 
     replay_buffer=replay_buffer)
 
