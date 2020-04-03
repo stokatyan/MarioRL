@@ -8,22 +8,25 @@ public class Coin : MonoBehaviour
     float originalHeight = 0;
     MeshRenderer m_renderer;
 
+    protected bool shouldAnimateBounce = true;
+
     void Awake()
     {
         originalHeight = transform.position.y;
         m_renderer = GetComponent<MeshRenderer>();
     }
 
-    void Update()
+    protected virtual void Update()
     {
         transform.Rotate (0, 50*Time.deltaTime, 0);
 
-        Vector3 pos = transform.position;
-        float newY = Mathf.Sin(Time.time * 1)/3 + originalHeight;
-        transform.position = new Vector3(pos.x, newY, pos.z);
+        if (shouldAnimateBounce)
+        {
+            AnimateBounce();
+        }
     }
 
-    void OnTriggerEnter(Collider other) {
+    protected virtual void OnTriggerEnter(Collider other) {
          if (other.tag == Tags.mario) {
              m_renderer.enabled = false;
          }
@@ -41,9 +44,17 @@ public class Coin : MonoBehaviour
     }
 
 
-    void Reset()
+    protected virtual void Reset()
     {
         m_renderer.enabled = true;
+    }
+
+
+    void AnimateBounce()
+    {
+        Vector3 pos = transform.position;
+        float newY = Mathf.Sin(Time.time * 1)/3 + originalHeight;
+        transform.position = new Vector3(pos.x, newY, pos.z);
     }
 
 }

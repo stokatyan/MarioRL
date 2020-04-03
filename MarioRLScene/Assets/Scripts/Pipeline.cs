@@ -91,11 +91,15 @@ public class Observation
     [SerializeField]
     public float[] coinPosition = new float[2];
 
-    public Observation(float distance, float[] marioPosition, float[] coinPosition)
+    [SerializeField]
+    public int smallCoinsCollectedCount = 0;
+
+    public Observation(float distance, float[] marioPosition, float[] coinPosition, int smallCoinsCollectedCount)
     {
         this.distance = distance;
         this.marioPosition = marioPosition;
         this.coinPosition = coinPosition;
+        this.smallCoinsCollectedCount = smallCoinsCollectedCount;
     }
 }
 
