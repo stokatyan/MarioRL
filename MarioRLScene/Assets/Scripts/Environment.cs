@@ -148,11 +148,13 @@ public class Environment : MonoBehaviour
         Vector2 marioVector = new Vector2(mario.transform.position.x, mario.transform.position.z);
         float distance = Vector2.Distance(coinVector, marioVector);
 
+        float[] marioDistances = mario.GetDistances();
         float[] marioPosition = {marioVector.x, marioVector.y};
         float marioRotation = mario.transform.eulerAngles.y;
         float[] coinPosition = {coinVector.x, coinVector.y};
 
-        Observation obs = new Observation(distance, marioPosition, marioRotation, 
+        Observation obs = new Observation(distance, marioDistances, 
+                                            marioPosition, marioRotation, 
                                             coinPosition, smallCoinsCollectedCount);
 
         Pipeline.WriteObservation(obs);

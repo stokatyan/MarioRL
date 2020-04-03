@@ -14,11 +14,12 @@ public class Mario : MonoBehaviour
     [HideInInspector]
     public Action currentAction;
 
+    float[] distances = new float[19];
+
     void Awake()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        
     }
 
     void FixedUpdate()
@@ -95,6 +96,11 @@ public class Mario : MonoBehaviour
 
     #region State
 
+    public float[] GetDistances() 
+    {
+        return distances;
+    }
+
     void OnEnable()
     {
         Environment.ResetState += Reset;
@@ -115,27 +121,35 @@ public class Mario : MonoBehaviour
 
     #endregion
 
-    #region Visio
+    #region Vision
 
     void RaycastSight()
     {       
-
         Vector3 fwd = transform.TransformDirection(Vector3.forward);
         Vector3 lft = transform.TransformDirection(Vector3.left);
         Vector3 rht = transform.TransformDirection(Vector3.right);
+
+        int distanceIndex = 0;
+
         for (float i = 1; i <= 10; i++)
         {
             Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
-            RaycastToDirection(direction, fwd);
+            float d = RaycastToDirection(direction, fwd);
+            distances[distanceIndex] = d;
+
+            distanceIndex += 1;
         }
         for (float i = 1; i < 10 ; i++)
         {
             Vector3 direction = rht*((10-i)/10) + fwd*((i + i)/10.0f);
-            RaycastToDirection(direction, fwd, true);
+            float d = RaycastToDirection(direction, fwd, true);
+            distances[distanceIndex] = d;
+
+            distanceIndex += 1;
         }
     }
 
-    RaycastHit RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false)
+    float RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false)
     {
         float rootAngle = Vector3.SignedAngle(fwd, Vector3.forward, Vector3.up);
         if (isRightSide)
@@ -165,7 +179,7 @@ public class Mario : MonoBehaviour
             Debug.DrawRay(rayStart2, direction * 15, Color.red);
         }
 
-        return hit;
+        return hit.distance;
     }
 
     #endregion
