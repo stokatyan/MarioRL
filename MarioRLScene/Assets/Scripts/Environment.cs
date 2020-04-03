@@ -16,7 +16,7 @@ public class Environment : MonoBehaviour
 
     const int maxSmallCoinCount = 5;
     const float smallCoinFixedY = 1.25f;
-    int smallCoinCollectedCount = 0;
+    int smallCoinsCollectedCount = 0;
 
     float updateFrequency = 0.1f;
     float lastUpdateTime = 0;
@@ -63,8 +63,7 @@ public class Environment : MonoBehaviour
 
     void CollectedSmallCoin()
     {
-        smallCoinCollectedCount += 1;
-        Debug.Log("Small Coins Collected: " + smallCoinCollectedCount);
+        smallCoinsCollectedCount += 1;
     }
 
     #endregion
@@ -114,7 +113,7 @@ public class Environment : MonoBehaviour
     {
         Pipeline.ClearAction();
 
-        smallCoinCollectedCount = 0;
+        smallCoinsCollectedCount = 0;
         if (ResetState != null)
         {
             ResetState();
@@ -152,7 +151,7 @@ public class Environment : MonoBehaviour
         float[] marioPosition = {marioVector.x, marioVector.y};
         float[] coinPosition = {coinVector.x, coinVector.y};
 
-        Observation obs = new Observation(distance, marioPosition, coinPosition);
+        Observation obs = new Observation(distance, marioPosition, coinPosition, smallCoinsCollectedCount);
 
         Pipeline.WriteObservation(obs);
     }
