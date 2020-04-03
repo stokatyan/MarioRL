@@ -123,30 +123,46 @@ public class Mario : MonoBehaviour
         Vector3 fwd = transform.TransformDirection(Vector3.forward);
         Vector3 lft = transform.TransformDirection(Vector3.left);
         Vector3 rht = transform.TransformDirection(Vector3.right);
-        for (float i = 1; i <= 10 ; i++)
+        for (float i = 1; i <= 10; i++)
         {
             Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
-            RaycastToDirection(direction);
+            RaycastToDirection(direction, fwd);
         }
         for (float i = 1; i < 10 ; i++)
         {
             Vector3 direction = rht*((10-i)/10) + fwd*((i + i)/10.0f);
-            RaycastToDirection(direction);
+            RaycastToDirection(direction, fwd, true);
         }
     }
 
-    RaycastHit RaycastToDirection(Vector3 direction)
+    RaycastHit RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false)
     {
-        Vector3 directionShift = direction * 0.5f;
-        Vector3 rayStart = transform.position + directionShift;
-        rayStart.y = 1.25f;
+        float rootAngle = Vector3.SignedAngle(fwd, Vector3.forward, Vector3.up);
+        if (isRightSide)
+        {
+            rootAngle *= -1;
+        }
 
+        float angle = (rootAngle + Vector3.Angle(direction, fwd)) * 0.0174533f;
+        float radius = 1;
+        float x = radius * Mathf.Sin(angle);
+        if (!isRightSide)
+        {
+            x *= -1;
+        }
+
+        float y = 1.25f;
+        float z = radius * Mathf.Cos(angle);
+        Vector3 rayStart = transform.position;
+        rayStart.y = y;
+        Vector3 rayStart2 = rayStart + new Vector3(x, 0, z);
         RaycastHit hit;
+
         if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinMask))
         {
-            Debug.DrawRay(rayStart, direction * hit.distance, Color.green);
+            Debug.DrawRay(rayStart2, direction * hit.distance, Color.green);
         } else {
-            Debug.DrawRay(rayStart, direction * 15, Color.red);
+            Debug.DrawRay(rayStart2, direction * 15, Color.red);
         }
 
         return hit;
