@@ -14,16 +14,20 @@ public class Mario : MonoBehaviour
     [HideInInspector]
     public Action currentAction;
 
+    float[] distances = new float[19];
+
     void Awake()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        
     }
 
     void FixedUpdate()
     {
         HandleMovement();
+
+        RaycastSight();
+        
     }
 
     #region Movement
@@ -90,17 +94,12 @@ public class Mario : MonoBehaviour
 
     #endregion
 
-    #region Collision
-
-    void OnTriggerEnter(Collider other) {
-         if (other.tag == Tags.coin) {
-            //  Destroy(other.gameObject);
-         }
-     }
-
-    #endregion
-
     #region State
+
+    public float[] GetDistances() 
+    {
+        return distances;
+    }
 
     void OnEnable()
     {
@@ -122,5 +121,67 @@ public class Mario : MonoBehaviour
 
     #endregion
 
+    #region Vision
+
+    void RaycastSight()
+    {       
+        Vector3 fwd = transform.TransformDirection(Vector3.forward);
+        Vector3 lft = transform.TransformDirection(Vector3.left);
+        Vector3 rht = transform.TransformDirection(Vector3.right);
+
+        int distanceIndex = 0;
+
+        for (float i = 1; i <= 10; i++)
+        {
+            Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
+            float d = RaycastToDirection(direction, fwd);
+            distances[distanceIndex] = d;
+
+            distanceIndex += 1;
+        }
+        for (float i = 1; i < 10 ; i++)
+        {
+            Vector3 direction = rht*((10-i)/10) + fwd*((i + i)/10.0f);
+            float d = RaycastToDirection(direction, fwd, true);
+            distances[distanceIndex] = d;
+
+            distanceIndex += 1;
+        }
+    }
+
+    float RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false)
+    {
+        float rootAngle = Vector3.SignedAngle(fwd, Vector3.forward, Vector3.up);
+        if (isRightSide)
+        {
+            rootAngle *= -1;
+        }
+
+        float angle = (rootAngle + Vector3.Angle(direction, fwd)) * 0.0174533f;
+        float radius = 1;
+        float x = radius * Mathf.Sin(angle);
+        if (!isRightSide)
+        {
+            x *= -1;
+        }
+
+        float y = 1.25f;
+        float z = radius * Mathf.Cos(angle);
+        Vector3 rayStart = transform.position;
+        rayStart.y = y;
+        Vector3 rayStart2 = rayStart + new Vector3(x, 0, z);
+        RaycastHit hit;
+
+        if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinMask))
+        {
+            Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.green);
+        } else {
+            Debug.DrawRay(rayStart2, direction * 15, Color.red);
+        }
+
+        return hit.distance;
+    }
+
+    #endregion
 
 }

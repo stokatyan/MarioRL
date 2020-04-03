@@ -86,7 +86,13 @@ public class Observation
     public float distance = 0;
 
     [SerializeField]
+    public float[] marioDistances = new float[19];
+
+    [SerializeField]
     public float[] marioPosition = new float[2];
+
+    [SerializeField]
+    public float marioRotation = 0;
 
     [SerializeField]
     public float[] coinPosition = new float[2];
@@ -94,10 +100,16 @@ public class Observation
     [SerializeField]
     public int smallCoinsCollectedCount = 0;
 
-    public Observation(float distance, float[] marioPosition, float[] coinPosition, int smallCoinsCollectedCount)
+    const float maxRotation = 360;
+
+    public Observation(float distance, float[] marioDistances, float[] marioPosition, 
+                        float marioRotation, float[] coinPosition, 
+                        int smallCoinsCollectedCount)
     {
         this.distance = distance;
+        this.marioDistances = marioDistances;
         this.marioPosition = marioPosition;
+        this.marioRotation = marioRotation/Observation.maxRotation;
         this.coinPosition = coinPosition;
         this.smallCoinsCollectedCount = smallCoinsCollectedCount;
     }
