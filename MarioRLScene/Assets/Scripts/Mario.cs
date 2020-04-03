@@ -118,18 +118,27 @@ public class Mario : MonoBehaviour
     #region Visio
 
     void RaycastSight()
-    {        
+    {       
+
         Vector3 fwd = transform.TransformDirection(Vector3.forward);
         Vector3 lft = transform.TransformDirection(Vector3.left);
-        Vector3 lft_1 = transform.TransformDirection(Vector3.left + Vector3.forward/3);
-        RaycastToDirection(fwd);
-        RaycastToDirection(lft);
-        RaycastToDirection(lft_1);
+        Vector3 rht = transform.TransformDirection(Vector3.right);
+        for (float i = 1; i <= 10 ; i++)
+        {
+            Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
+            RaycastToDirection(direction);
+        }
+        for (float i = 1; i < 10 ; i++)
+        {
+            Vector3 direction = rht*((10-i)/10) + fwd*((i + i)/10.0f);
+            RaycastToDirection(direction);
+        }
     }
 
     RaycastHit RaycastToDirection(Vector3 direction)
     {
-        Vector3 rayStart = transform.position + direction * 0.5f;
+        Vector3 directionShift = direction * 0.5f;
+        Vector3 rayStart = transform.position + directionShift;
         rayStart.y = 1.25f;
 
         RaycastHit hit;
@@ -137,7 +146,7 @@ public class Mario : MonoBehaviour
         {
             Debug.DrawRay(rayStart, direction * hit.distance, Color.green);
         } else {
-            Debug.DrawRay(rayStart, direction * 1000, Color.red);
+            Debug.DrawRay(rayStart, direction * 15, Color.red);
         }
 
         return hit;
