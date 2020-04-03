@@ -160,7 +160,7 @@ public class Mario : MonoBehaviour
 
         if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinMask))
         {
-            Debug.DrawRay(rayStart2, direction * hit.distance, Color.green);
+            Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.green);
         } else {
             Debug.DrawRay(rayStart2, direction * 15, Color.red);
         }
