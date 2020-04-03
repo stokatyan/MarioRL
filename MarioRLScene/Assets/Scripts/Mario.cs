@@ -24,6 +24,9 @@ public class Mario : MonoBehaviour
     void FixedUpdate()
     {
         HandleMovement();
+
+        RaycastSight();
+        
     }
 
     #region Movement
@@ -90,16 +93,6 @@ public class Mario : MonoBehaviour
 
     #endregion
 
-    #region Collision
-
-    void OnTriggerEnter(Collider other) {
-         if (other.tag == Tags.coin) {
-            //  Destroy(other.gameObject);
-         }
-     }
-
-    #endregion
-
     #region State
 
     void OnEnable()
@@ -122,5 +115,25 @@ public class Mario : MonoBehaviour
 
     #endregion
 
+    #region Visio
+
+    void RaycastSight()
+    {
+        
+        
+        Vector3 fwd = transform.TransformDirection(Vector3.forward);
+        Vector3 rayStart = transform.position + fwd * 0.5f;
+        rayStart.y = 1.25f;
+
+        RaycastHit hit;
+        if (Physics.Raycast(rayStart, fwd, out hit, Mathf.Infinity, Layers.SmallCoinMask))
+        {
+            Debug.DrawRay(rayStart, transform.TransformDirection(Vector3.forward) * hit.distance, Color.green);
+        } else {
+            Debug.DrawRay(rayStart, transform.TransformDirection(Vector3.forward) * 1000, Color.red);
+        }
+    }
+
+    #endregion
 
 }
