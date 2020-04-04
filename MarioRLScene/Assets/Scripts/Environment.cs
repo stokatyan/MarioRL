@@ -109,6 +109,31 @@ public class Environment : MonoBehaviour
         }
     }
 
+    void SetupEval()
+    {
+        Vector3 randomPosition = CreateRandomPosition();
+        randomPosition.x = maxX;
+        coin.transform.position = randomPosition;
+        randomPosition = CreateRandomPosition();
+        randomPosition.x = minX;
+        mario.SetPosition(randomPosition);
+
+        for (int i = 0; i < 10 ; i++)
+        {
+            randomPosition = CreateRandomPosition();
+            randomPosition.y = smallCoinFixedY;
+            float distance = Vector3.Distance(mario.transform.position, randomPosition);
+            if (distance < 2)
+            {
+                continue;
+            }
+
+            SmallCoin sc = SmallCoin.Instantiate(smallCoin);
+            sc.gameObject.SetActive(true);
+            sc.transform.position = randomPosition;
+        }
+    }
+
     void Reset()
     {
         Pipeline.ClearAction();
@@ -123,16 +148,33 @@ public class Environment : MonoBehaviour
         Pipeline.WriteGameStarted();
     }
 
+    void ResetEval()
+    {
+        Pipeline.ClearAction();
+
+        smallCoinsCollectedCount = 0;
+        if (ResetState != null)
+        {
+            ResetState();
+        }
+        SetupEval();
+        
+        Pipeline.WriteGameStarted();
+    }
+
     #endregion
 
     #region I/O
 
     void HandleGameState()
     {
-        bool isGameOver = Pipeline.ReadIsGameOver();
-        if (isGameOver)
+        int isGameOver = Pipeline.ReadIsGameOver();
+        if (isGameOver == GameState.isGameover)
         {
             Reset();
+        } else if (isGameOver == GameState.isEvalGameover)
+        {
+            ResetEval();
         }
     }
 

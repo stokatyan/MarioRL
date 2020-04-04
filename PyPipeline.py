@@ -64,9 +64,13 @@ def write_action(values):
     file.close()    
 
 
-def write_gameover():
+def write_gameover(reset_type):
+    dictionary = {}
+    dictionary['gameover'] = reset_type
+    json_str = json.dumps(dictionary)
+    
     file = open(f'{path}{gamestate_file}', 'w')
-    file.write('{"gameover":1}')
+    file.write(f'{json_str}')
     
     file.close()
     

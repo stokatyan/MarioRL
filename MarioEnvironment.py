@@ -63,6 +63,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.min_distance = 12
     self.collected_coins = 0
 
+    self.reset_type = 1
+
 
   def reset(self):
     """Return initial_time_step."""
@@ -80,7 +82,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
   def _reset(self):
     self.start_time = time.time()
-    pp.write_gameover()
+    pp.write_gameover(self.reset_type)
     time.sleep(self.sleep_time)
 
     self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)

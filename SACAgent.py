@@ -33,6 +33,7 @@ except:
 
 train_py_env = MarioEnvironment.MarioEnvironment()
 eval_py_env = MarioEnvironment.MarioEnvironment()
+eval_py_env.reset_type = 2
 
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
 eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
@@ -163,7 +164,7 @@ def train():
   batch_size = 150 # @param {type:"integer"}
   log_interval = 500 # @param {type:"integer"}
 
-  num_eval_episodes = 5 # @param {type:"integer"}
+  num_eval_episodes = 10 # @param {type:"integer"}
   eval_interval = 5000 # @param {type:"integer"}
 
   tf_agent = create_agent()

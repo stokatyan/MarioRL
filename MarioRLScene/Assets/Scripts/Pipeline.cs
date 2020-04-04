@@ -25,7 +25,7 @@ public class Pipeline
         return obj;
     }
 
-    public static bool ReadIsGameOver()
+    public static int ReadIsGameOver()
     {
         StreamReader reader = new StreamReader(gamestatePath);
         string json = reader.ReadToEnd();
@@ -33,10 +33,10 @@ public class Pipeline
 
         if (json.Length < 5)
         {
-            return false;
+            return 0;
         }
         GameState obj = JsonUtility.FromJson<GameState>(json);
-        return obj.isGameOver;
+        return obj.gameover;
     }
 
     public static void ClearAction()
@@ -69,14 +69,12 @@ public class Pipeline
 [System.Serializable]
 public class GameState
 {
+    public const int isNotGameover = 0;
+    public const int isGameover = 1;
+    public const int isEvalGameover = 2;
+
     [SerializeField]
     public int gameover = 0;
-
-    public bool isGameOver
-    {
-        get { return gameover == 1; }
-    }
-
 }
 
 [System.Serializable]
