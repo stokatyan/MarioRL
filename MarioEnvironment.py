@@ -52,10 +52,13 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_MARIO_ROTATION = 6
     self.INDEX_SMALL_COIN_DISTANCE = 7
 
+    self.MAX_DISTANCE = 12
+
     self.start_time = time.time()
     self.sleep_time = 0.2
     self.game_duration = 8
-    self.prev_vector_obs = np.array([0] * 24, dtype=np.float32)
+    self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)
+    self.prev_vector_obs[self.INDEX_DISTANCE] = self.MAX_DISTANCE
     self.prev_distance = 12
     self.min_distance = 12
     self.collected_coins = 0
@@ -70,8 +73,10 @@ class MarioEnvironment(py_environment.PyEnvironment):
   def action_spec(self):
     return self._action_spec
 
+
   def observation_spec(self):
     return self._observation_spec
+
 
   def _reset(self):
     self.start_time = time.time()
@@ -79,25 +84,28 @@ class MarioEnvironment(py_environment.PyEnvironment):
     time.sleep(self.sleep_time)
 
     self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)
-    self.prev_vector_obs[0] = 12
+    self.prev_vector_obs[self.INDEX_DISTANCE] = self.MAX_DISTANCE
 
-    obs = self.get_observation()
+    obs = list(self.get_observation())
     self.prev_distance = obs.pop(0)
     self.min_distance = self.prev_distance
     self.collected_coins = obs.pop(0)
     
+    obs = np.array(obs, dtype=np.float32)
     return ts.restart(obs)
+
 
   def _step(self, action):
     pp.write_action(action)
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
-    prev_distance = self.prev_distance
-    obs = self.get_observation()
+    prev_distance = self.prev_vector_obs[self.INDEX_DISTANCE]
+    obs = list(self.get_observation())
+    self.prev_vector_obs = np.array(obs, dtype=np.float32)
+
     distance = obs.pop(0)
     latest_collected_coins = obs.pop(0)
-    self.prev_vector_obs = obs
     
     did_collect = False
     if distance < 0.9:
@@ -108,6 +116,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     discount = (self.game_duration - time_elapsed) / self.game_duration
     
     timestep = None
+    obs = np.array(obs, dtype=np.float32)
     if time_elapsed > self.game_duration or did_collect:
       self.reset()
       timestep = ts.termination(obs, reward=reward)
@@ -140,17 +149,20 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
   def get_observation(self):
     obs_dict = pp.read_observation()
-    obs = [self.prev_distance] + [self.collected_coins] + self.prev_vector_obs
+    obs = self.prev_vector_obs
 
     if self.OBS_DISTANCE in obs_dict:
       obs[self.INDEX_DISTANCE] = obs_dict[self.OBS_DISTANCE]
       obs[self.INDEX_SMALL_COINS_COLLECTED] = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
       obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
       obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
+      obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
       obs[self.INDEX_COIN_X] = obs_dict[self.OBS_COIN_POSITION][0]
       obs[self.INDEX_COIN_Y] = obs_dict[self.OBS_COIN_POSITION][1]
+      
       distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
-      for d in distances:
-        obs.append(d)
+      for index in range(len(distances)):
+        coin_obs_index = self.INDEX_SMALL_COIN_DISTANCE + index
+        obs[coin_obs_index] = distances[index]
 
     return obs
