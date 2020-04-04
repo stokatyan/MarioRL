@@ -172,14 +172,19 @@ public class Mario : MonoBehaviour
         Vector3 rayStart2 = rayStart + new Vector3(x, 0, z);
         RaycastHit hit;
 
-        if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinMask))
+        float hitDistance = 0;
+        if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinAndWallMask))
         {
-            Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.green);
-        } else {
-            Debug.DrawRay(rayStart2, direction * 15, Color.red);
+            if (hit.transform.gameObject.tag == Tags.wall)
+            {
+                Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.red);
+            } else {
+                Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.green);
+                hitDistance = hit.distance;
+            }            
         }
 
-        return hit.distance;
+        return hitDistance;
     }
 
     #endregion

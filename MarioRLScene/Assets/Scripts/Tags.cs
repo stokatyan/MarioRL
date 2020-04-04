@@ -12,5 +12,8 @@ public class Tags : MonoBehaviour
 public class Layers : MonoBehaviour
 {
     public const int SmallCoinIndex = 8;
+    public const int WallIndex = 9;
     public const int SmallCoinMask = 1 << SmallCoinIndex;
+    public const int WallMask = 1 << WallIndex;
+    public const int SmallCoinAndWallMask = SmallCoinMask | WallMask;
 }

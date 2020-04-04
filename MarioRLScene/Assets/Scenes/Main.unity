@@ -401,6 +401,54 @@ PrefabInstance:
       propertyPath: smallCoin
       value: 
       objectReference: {fileID: 913078935}
+    - target: {fileID: 1950718797, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.26
+      objectReference: {fileID: 0}
+    - target: {fileID: 1950718797, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.71
+      objectReference: {fileID: 0}
+    - target: {fileID: 745660424, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.26
+      objectReference: {fileID: 0}
+    - target: {fileID: 745660424, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.71
+      objectReference: {fileID: 0}
+    - target: {fileID: 18974196, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.26
+      objectReference: {fileID: 0}
+    - target: {fileID: 18974196, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.71
+      objectReference: {fileID: 0}
+    - target: {fileID: 610060519, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.26
+      objectReference: {fileID: 0}
+    - target: {fileID: 610060519, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.71
+      objectReference: {fileID: 0}
+    - target: {fileID: 18974195, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 610060518, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 745660423, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1950718796, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bf7b0a478193c6d55a8f6d82518fb37b, type: 3}
 --- !u!1001 &4040130940210340593
