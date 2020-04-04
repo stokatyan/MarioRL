@@ -80,8 +80,8 @@ def create_agent():
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
 
-  actor_fc_layer_params = (50, 50)
-  critic_joint_fc_layer_params = (50, 50)
+  actor_fc_layer_params = (300, 150, 50)
+  critic_joint_fc_layer_params = (300, 150, 50)
 
   critic_net = critic_network.CriticNetwork(
     (observation_spec, action_spec),
@@ -119,7 +119,7 @@ def create_agent():
 
 
 def create_replay_buffer(agent):
-  replay_buffer_capacity = 10000 # @param {type:"integer"}
+  replay_buffer_capacity = 100000 # @param {type:"integer"}
 
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
@@ -156,16 +156,16 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 
 def train():
-  num_iterations = 30000 # @param {type:"integer"}
+  num_iterations = 300000 # @param {type:"integer"}
 
   initial_collect_steps = 1000 # @param {type:"integer"} 
   collect_steps_per_iteration = 1 # @param {type:"integer"}
 
-  batch_size = 150 # @param {type:"integer"}
-  log_interval = 500 # @param {type:"integer"}
+  batch_size = 32000 # @param {type:"integer"}
+  log_interval = 1000 # @param {type:"integer"}
 
   num_eval_episodes = 10 # @param {type:"integer"}
-  eval_interval = 5000 # @param {type:"integer"}
+  eval_interval = 10000 # @param {type:"integer"}
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -195,7 +195,7 @@ def train():
       num_steps=collect_steps_per_iteration)
 
   train_checkpointer = create_checkpointer(
-    max_to_keep=10, 
+    max_to_keep=60, 
     agent=tf_agent, 
     replay_buffer=replay_buffer)
 

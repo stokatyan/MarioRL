@@ -56,7 +56,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     self.start_time = time.time()
     self.sleep_time = 0.2
-    self.game_duration = 8
+    self.game_duration = 16
     self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)
     self.prev_vector_obs[self.INDEX_DISTANCE] = self.MAX_DISTANCE
     self.prev_distance = 12
@@ -115,8 +115,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     reward = self.calculate_reward(distance, prev_distance, latest_collected_coins)
     self.collected_coins = latest_collected_coins
-    discount = (self.game_duration - time_elapsed) / self.game_duration
-    
+    discount = (self.game_duration - time_elapsed*0.8) / self.game_duration
+
     timestep = None
     obs = np.array(obs, dtype=np.float32)
     if time_elapsed > self.game_duration or did_collect:
@@ -144,7 +144,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
-      reward += collected_coin_diff * 500
+      reward += collected_coin_diff * 10000
 
     return reward
 
