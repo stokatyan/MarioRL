@@ -154,15 +154,14 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 
 def train():
-  num_iterations = 500 # @param {type:"integer"}
+  num_iterations = 10000 # @param {type:"integer"}
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 1
+  initial_collect_episodes = 15
 
   batch_size = 8000 # @param {type:"integer"}
-  log_interval = 5 # @param {type:"integer"}
 
-  num_eval_episodes = 10 # @param {type:"integer"}
-  eval_interval = 10 # @param {type:"integer"}
+  num_eval_episodes = 5 # @param {type:"integer"}
+  eval_interval = 100 # @param {type:"integer"}
   train_sequence_length = 20
 
   tf_agent = create_agent()

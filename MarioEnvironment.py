@@ -27,8 +27,9 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self._action_spec = array_spec.BoundedArraySpec(
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
-    min_distance = [0] * 19
-    max_distance = [12] * 19
+    self.COUNT_SMALL_COIN_DISTANCES = 19
+    min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
+    max_distance = [12] * self.COUNT_SMALL_COIN_DISTANCES
 
     self._observation_spec = array_spec.BoundedArraySpec(
         shape=(24,), dtype=np.float32, 
@@ -102,10 +103,16 @@ class MarioEnvironment(py_environment.PyEnvironment):
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
+    scd_start = self.INDEX_SMALL_COIN_DISTANCE
+    scd_end = scd_start + self.COUNT_SMALL_COIN_DISTANCES
+
     prev_distance = self.prev_vector_obs[self.INDEX_DISTANCE]
+    prev_small_coin_distances = list(self.prev_vector_obs)[scd_start:scd_end]
+
     obs = list(self.get_observation())
     self.prev_vector_obs = np.array(obs, dtype=np.float32)
-
+    
+    small_coin_distances = obs[scd_start:scd_end]
     distance = obs.pop(0)
     latest_collected_coins = obs.pop(0)
     
@@ -113,7 +120,12 @@ class MarioEnvironment(py_environment.PyEnvironment):
     if distance < 0.9:
       did_collect = True
 
-    reward = self.calculate_reward(distance, prev_distance, latest_collected_coins)
+    reward = self.calculate_reward(
+      distance=distance, 
+      prev_distance=prev_distance, 
+      latest_collected_coins=latest_collected_coins, 
+      small_coin_distances=small_coin_distances,
+      prev_small_coin_distances=prev_small_coin_distances)
     self.collected_coins = latest_collected_coins
     discount = (self.game_duration - time_elapsed*0.8) / self.game_duration
 
@@ -128,23 +140,30 @@ class MarioEnvironment(py_environment.PyEnvironment):
     return timestep
 
 
-  def calculate_reward(self, distance, prev_distance, latest_collected_coins):
+  def calculate_reward(self, 
+                        distance, 
+                        prev_distance, 
+                        latest_collected_coins, 
+                        small_coin_distances, 
+                        prev_small_coin_distances):
     reward = 0
 
-    if distance < 0.9:
+    if distance < 0.85:
       reward = 5000
 
-    if distance < self.min_distance:
-        reward += 100
-        self.min_distance = distance
-    elif distance < prev_distance:
-        reward += 10
-    else:
-      reward -= 10
+    reward += 15 * (prev_distance - distance)
+    print(reward)
+
+    diffs = []
+    for index in range(len(small_coin_distances) - 1):
+      scd = small_coin_distances[index]
+      p_scd = prev_small_coin_distances[index]
+      diffs.append(f'{p_scd} - {scd}')
+      reward += 5 * (p_scd - scd)
 
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
-      reward += collected_coin_diff * 10000
+      reward += collected_coin_diff * 1000
 
     return reward
 
