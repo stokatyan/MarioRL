@@ -247,7 +247,7 @@ def train():
   plt.ylim()
   plt.show()
 
-  print('Running old model ...')
+  print('Running latest model ...')
 
   time_step = eval_env.reset()
   while True:

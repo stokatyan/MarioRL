@@ -6,7 +6,9 @@ public class Tags : MonoBehaviour
 {
     public const string coin = "coin";
     public const string mario = "mario";
+    public const string smallCoin = "smallCoin";
     public const string wall = "wall";
+    
 }
 
 public class Layers : MonoBehaviour
