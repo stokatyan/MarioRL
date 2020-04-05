@@ -152,8 +152,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
       reward = 5000
 
     reward += 15 * (prev_distance - distance)
-    print(reward)
-
     diffs = []
     for index in range(len(small_coin_distances) - 1):
       scd = small_coin_distances[index]
