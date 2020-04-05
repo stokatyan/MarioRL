@@ -136,35 +136,10 @@ def train_eval(
     eval_metrics_callback=None):
   """A simple train and eval for RNN SAC on DM control."""
   root_dir = 'checkpoint'
-  if reward_scale_factor == _DEFAULT_REWARD_SCALE:
-    # Use value recommended by https://arxiv.org/abs/1801.01290
-    if env_name.startswith('Humanoid'):
-      reward_scale_factor = 20.0
-    else:
-      reward_scale_factor = 5.0
-
-  eval_metrics = [
-      tf_metrics.AverageReturnMetric(buffer_size=num_eval_episodes),
-      tf_metrics.AverageEpisodeLengthMetric(buffer_size=num_eval_episodes)
-  ]
 
   global_step = tf.compat.v1.train.get_or_create_global_step()
   with tf.compat.v2.summary.record_if(
       lambda: tf.math.equal(global_step % summary_interval, 0)):
-    # env_wrappers = []
-
-    # env_load_fn = functools.partial(suite_dm_control.load,
-    #                                 task_name=task_name,
-    #                                 env_wrappers=env_wrappers)
-
-    # if num_parallel_environments == 1:
-    #   py_env = env_load_fn(env_name)
-    # else:
-    #   py_env = parallel_py_environment.ParallelPyEnvironment(
-    #       [lambda: env_load_fn(env_name)]*num_parallel_environments)
-    # tf_env = tf_py_environment.TFPyEnvironment(py_env)
-    # eval_env_name = eval_env_name or env_name
-    # eval_tf_env = tf_py_environment.TFPyEnvironment(env_load_fn(eval_env_name))
 
     train_py_env = MarioEnvironment.MarioEnvironment()
     eval_py_env = MarioEnvironment.MarioEnvironment()
@@ -220,22 +195,6 @@ def train_eval(
         data_spec=tf_agent.collect_data_spec,
         batch_size=tf_env.batch_size*num_parallel_environments,
         max_length=replay_buffer_capacity)
-    replay_observer = [replay_buffer.add_batch]
-
-    env_steps = tf_metrics.EnvironmentSteps(prefix='Train')
-    average_return = tf_metrics.AverageReturnMetric(
-        prefix='Train',
-        buffer_size=num_eval_episodes,
-        batch_size=tf_env.batch_size)
-    train_metrics = [
-        tf_metrics.NumberOfEpisodes(prefix='Train'),
-        env_steps,
-        average_return,
-        tf_metrics.AverageEpisodeLengthMetric(
-            prefix='Train',
-            buffer_size=num_eval_episodes,
-            batch_size=tf_env.batch_size),
-    ]
 
     eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
     initial_collect_policy = random_tf_policy.RandomTFPolicy(
@@ -243,62 +202,33 @@ def train_eval(
     collect_policy = tf_agent.collect_policy
 
     train_checkpointer = common.Checkpointer(
-        ckpt_dir=os.path.join(root_dir, 'train'),
+        ckpt_dir=root_dir,
         agent=tf_agent,
-        global_step=global_step,
-        metrics=metric_utils.MetricsGroup(train_metrics, 'train_metrics'))
-    policy_checkpointer = common.Checkpointer(
-        ckpt_dir=os.path.join(root_dir, 'policy'),
-        policy=eval_policy,
         global_step=global_step)
-    rb_checkpointer = common.Checkpointer(
-        ckpt_dir=os.path.join(root_dir, 'replay_buffer'),
-        max_to_keep=1,
-        replay_buffer=replay_buffer)
 
     train_checkpointer.initialize_or_restore()
-    rb_checkpointer.initialize_or_restore()
 
     initial_collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
         tf_env,
         initial_collect_policy,
-        observers=replay_observer + train_metrics,
+        observers=[replay_buffer.add_batch],
         num_episodes=initial_collect_episodes)
 
     collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
         tf_env,
         collect_policy,
-        observers=replay_observer + train_metrics,
+        observers=[replay_buffer.add_batch],
         num_episodes=collect_episodes_per_iteration)
 
-    if use_tf_functions:
-      initial_collect_driver.run = common.function(initial_collect_driver.run)
-      collect_driver.run = common.function(collect_driver.run)
-      tf_agent.train = common.function(tf_agent.train)
+    # if use_tf_functions:
+    initial_collect_driver.run = common.function(initial_collect_driver.run)
+    collect_driver.run = common.function(collect_driver.run)
+    tf_agent.train = common.function(tf_agent.train)
 
-    # Collect initial replay data.
-    if env_steps.result() == 0 or replay_buffer.num_frames() == 0:
-      logging.info(
-          'Initializing replay buffer by collecting experience for %d steps'
-          'with a random policy.', initial_collect_episodes)
-      initial_collect_driver.run()
-
-    results = metric_utils.eager_compute(
-        eval_metrics,
-        eval_tf_env,
-        eval_policy,
-        num_episodes=num_eval_episodes,
-        train_step=env_steps.result(),
-    )
-    if eval_metrics_callback is not None:
-      eval_metrics_callback(results, env_steps.result())
-    metric_utils.log_metrics(eval_metrics)
+    initial_collect_driver.run()
 
     time_step = None
     policy_state = collect_policy.get_initial_state(tf_env.batch_size)
-
-    time_acc = 0
-    env_steps_before = env_steps.result().numpy()
 
     # Dataset generates trajectories with shape [Bx2x...]
     dataset = replay_buffer.as_dataset(
@@ -311,59 +241,20 @@ def train_eval(
       experience, _ = next(iterator)
       return tf_agent.train(experience)
 
-    if use_tf_functions:
-      train_step = common.function(train_step)
+    train_step = common.function(train_step)
 
-    for _ in range(num_iterations):
-      start_time = time.time()
-      start_env_steps = env_steps.result()
-      time_step, policy_state = collect_driver.run(
-          time_step=time_step,
-          policy_state=policy_state,
-      )
-      episode_steps = env_steps.result() - start_env_steps
-      for _ in range(episode_steps):
-        for _ in range(train_steps_per_iteration):
-          train_step()
-        time_acc += time.time() - start_time
-
-        if global_step.numpy() % log_interval == 0:
-          logging.info('env steps = %d, average return = %f',
-                       env_steps.result(), average_return.result())
-          env_steps_per_sec = (env_steps.result().numpy() -
-                               env_steps_before) / time_acc
-          logging.info('%.3f env steps/sec', env_steps_per_sec)
-          tf.compat.v2.summary.scalar(
-              name='env_steps_per_sec',
-              data=env_steps_per_sec,
-              step=env_steps.result())
-          time_acc = 0
-          env_steps_before = env_steps.result().numpy()
-
-        for train_metric in train_metrics:
-          train_metric.tf_summaries(train_step=env_steps.result())
-
-        if global_step.numpy() % eval_interval == 0:
-          results = metric_utils.eager_compute(
-              eval_metrics,
-              eval_tf_env,
-              eval_policy,
-              num_episodes=num_eval_episodes,
-              train_step=env_steps.result(),
-          )
-          if eval_metrics_callback is not None:
-            eval_metrics_callback(results, env_steps.numpy())
-          metric_utils.log_metrics(eval_metrics)
+    for iteration_count in range(num_iterations):
+        time_step, policy_state = collect_driver.run(
+            time_step=time_step,
+            policy_state=policy_state,
+        )
+        print(f'Training iteration: {iteration_count}...')
+        train_step()
+        print('Done Training.')
 
         global_step_val = global_step.numpy()
         if global_step_val % train_checkpoint_interval == 0:
           train_checkpointer.save(global_step=global_step_val)
-
-        if global_step_val % policy_checkpoint_interval == 0:
-          policy_checkpointer.save(global_step=global_step_val)
-
-        if global_step_val % rb_checkpoint_interval == 0:
-          rb_checkpointer.save(global_step=global_step_val)
 
 
 def main(_):

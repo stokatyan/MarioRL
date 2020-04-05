@@ -5,6 +5,7 @@ import tensorflow as tf
 from tf_agents.agents.ddpg import critic_rnn_network
 from tf_agents.agents.sac import sac_agent
 from tf_agents.drivers import dynamic_step_driver
+from tf_agents.drivers import dynamic_episode_driver
 from tf_agents.environments import suite_pybullet
 from tf_agents.environments import tf_py_environment
 from tf_agents.eval import metric_utils
@@ -83,13 +84,13 @@ def create_agent():
   # actor_fc_layer_params = (300, 150, 50)
   # critic_joint_fc_layer_params = (300, 150, 50)
 
-  critic_net = critic_rnn_network.CriticRnnNetwork(
-    (observation_spec, action_spec))
-
   actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
     observation_spec,
-    action_spec)
+    action_spec,
+    continuous_projection_net=normal_projection_net)
 
+  critic_net = critic_rnn_network.CriticRnnNetwork(
+    (observation_spec, action_spec))
   
   tf_agent = sac_agent.SacAgent(
       train_env.time_step_spec(),
@@ -104,7 +105,7 @@ def create_agent():
           learning_rate=alpha_learning_rate),
       target_update_tau=target_update_tau,
       target_update_period=target_update_period,
-      td_errors_loss_fn=tf.compat.v1.losses.mean_squared_error,
+      td_errors_loss_fn=tf.math.squared_difference,
       gamma=gamma,
       reward_scale_factor=reward_scale_factor,
       gradient_clipping=gradient_clipping,
@@ -114,7 +115,7 @@ def create_agent():
 
 
 def create_replay_buffer(agent):
-  replay_buffer_capacity = 100000 # @param {type:"integer"}
+  replay_buffer_capacity = 50000 # @param {type:"integer"}
 
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
@@ -152,52 +153,26 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 
 def train():
-  num_iterations = 300000 # @param {type:"integer"}
+  num_iterations = 500 # @param {type:"integer"}
+  collect_episodes_per_iteration = 1
+  initial_collect_episodes = 1
 
-  initial_collect_steps = 100 # @param {type:"integer"} 
-  collect_steps_per_iteration = 1 # @param {type:"integer"}
-
-  batch_size = 32000 # @param {type:"integer"}
-  log_interval = 1000 # @param {type:"integer"}
+  batch_size = 16000 # @param {type:"integer"}
+  log_interval = 5 # @param {type:"integer"}
 
   num_eval_episodes = 10 # @param {type:"integer"}
-  eval_interval = 10000 # @param {type:"integer"}
+  eval_interval = 10 # @param {type:"integer"}
   train_sequence_length = 20
 
   tf_agent = create_agent()
   tf_agent.initialize()
 
-  eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
-  collect_policy = tf_agent.collect_policy
-
   replay_buffer = create_replay_buffer(tf_agent)
 
-  initial_collect_driver = dynamic_step_driver.DynamicStepDriver(
-          train_env,
-          collect_policy,
-          observers=[replay_buffer.add_batch],
-          num_steps=initial_collect_steps)
-
-  # Prepare replay buffer as dataset with invalid transitions filtered.
-  def _filter_invalid_transition(trajectories, unused_arg1):
-    # Reduce filter_fn over full trajectory sampled. The sequence is kept only
-    # if all elements except for the last one pass the filter. This is to
-    # allow training on terminal steps.
-    return tf.reduce_all(~trajectories.is_boundary()[:-1])
-
-  dataset = replay_buffer.as_dataset(
-      num_parallel_calls=3, 
-      sample_batch_size=batch_size,
-      num_steps=train_sequence_length).unbatch().filter(
-          _filter_invalid_transition).batch(batch_size).prefetch(5)
-
-  iterator = iter(dataset)
-
-  collect_driver = dynamic_step_driver.DynamicStepDriver(
-      train_env,
-      collect_policy,
-      observers=[replay_buffer.add_batch],
-      num_steps=collect_steps_per_iteration)
+  eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
+  initial_collect_policy = random_tf_policy.RandomTFPolicy(
+        eval_env.time_step_spec(), eval_env.action_spec())
+  collect_policy = tf_agent.collect_policy
 
   train_checkpointer = create_checkpointer(
     max_to_keep=60, 
@@ -205,8 +180,18 @@ def train():
     replay_buffer=replay_buffer)
 
   train_checkpointer.initialize_or_restore()
+    
+  initial_collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
+      train_env,
+      initial_collect_policy,
+      observers=[replay_buffer.add_batch],
+      num_episodes=initial_collect_episodes)
 
-  # TRAINING THE AGENT
+  collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
+      train_env,
+      collect_policy,
+      observers=[replay_buffer.add_batch],
+      num_episodes=collect_episodes_per_iteration)
 
   tf_agent.train = common.function(tf_agent.train)
   collect_driver.run = common.function(collect_driver.run)
@@ -215,30 +200,43 @@ def train():
   print('\nCollecting Initial Steps ...')
   initial_collect_driver.run()
 
+  dataset = replay_buffer.as_dataset(
+      num_parallel_calls=3, 
+      sample_batch_size=batch_size,
+      num_steps=train_sequence_length + 1).prefetch(3)
+  iterator = iter(dataset)
+
+  # # Prepare replay buffer as dataset with invalid transitions filtered.
+  # def _filter_invalid_transition(trajectories, unused_arg1):
+  #   # Reduce filter_fn over full trajectory sampled. The sequence is kept only
+  #   # if all elements except for the last one pass the filter. This is to
+  #   # allow training on terminal steps.
+  #   return tf.reduce_all(~trajectories.is_boundary()[:-1])  
+
   # Evaluate the agent's policy once before training.
 
   returns = []
 
   print('\nTraining ...\n')
-  time_step = None
-  policy_state = collect_policy.get_initial_state(train_env.batch_size)
 
   def train_step():
     experience, _ = next(iterator)
     return tf_agent.train(experience)
   
   train_step = common.function(train_step)
-
-  for _ in range(num_iterations):
+  time_step = None
+  policy_state = collect_policy.get_initial_state(train_env.batch_size)
+  for iteration_count in range(num_iterations):
 
     # Collect a few steps using collect_policy and save to the replay buffer.
-    for _ in range(collect_steps_per_iteration):
-      time_step, policy_state = collect_driver.run(
-          time_step=time_step,
-          policy_state=policy_state,
-      )
-
+    time_step, policy_state = collect_driver.run(
+        time_step=time_step,
+        policy_state=policy_state,
+    )
+    
+    print(f'Training iteration: {iteration_count}...')
     train_loss = train_step()
+    print('Done Training.')
 
     step = tf_agent.train_step_counter.numpy()
 
