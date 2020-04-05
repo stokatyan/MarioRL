@@ -26,6 +26,7 @@ eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
 print(f'Running agent from restored checkpoint: {checkpointer._manager.latest_checkpoint} ...')
 
 time_step = eval_env.reset()
+policy_state = eval_policy.get_initial_state(eval_env.batch_size)
 while True:
-  action_step = eval_policy.action(time_step)
-  time_step = eval_env.step(action_step.action)
+  action_step, policy_state, _ = eval_policy.action(time_step, policy_state)
+  time_step = eval_env.step(action_step)

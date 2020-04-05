@@ -2,14 +2,14 @@ from __future__ import absolute_import, division, print_function
 
 import tensorflow as tf
 
-from tf_agents.agents.ddpg import critic_network
+from tf_agents.agents.ddpg import critic_rnn_network
 from tf_agents.agents.sac import sac_agent
 from tf_agents.drivers import dynamic_step_driver
 from tf_agents.environments import suite_pybullet
 from tf_agents.environments import tf_py_environment
 from tf_agents.eval import metric_utils
 from tf_agents.metrics import tf_metrics
-from tf_agents.networks import actor_distribution_network
+from tf_agents.networks import actor_distribution_rnn_network
 from tf_agents.networks import normal_projection_network
 from tf_agents.policies import greedy_policy
 from tf_agents.policies import random_tf_policy
@@ -80,20 +80,15 @@ def create_agent():
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
 
-  actor_fc_layer_params = (300, 150, 50)
-  critic_joint_fc_layer_params = (300, 150, 50)
+  # actor_fc_layer_params = (300, 150, 50)
+  # critic_joint_fc_layer_params = (300, 150, 50)
 
-  critic_net = critic_network.CriticNetwork(
-    (observation_spec, action_spec),
-    observation_fc_layer_params=None,
-    action_fc_layer_params=None,
-    joint_fc_layer_params=critic_joint_fc_layer_params)
+  critic_net = critic_rnn_network.CriticRnnNetwork(
+    (observation_spec, action_spec))
 
-  actor_net = actor_distribution_network.ActorDistributionNetwork(
+  actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
     observation_spec,
-    action_spec,
-    fc_layer_params=actor_fc_layer_params,
-    continuous_projection_net=normal_projection_net)
+    action_spec)
 
   
   tf_agent = sac_agent.SacAgent(
@@ -143,11 +138,12 @@ def compute_avg_return(environment, policy, num_episodes=5):
   for _ in range(num_episodes):
 
     time_step = environment.reset()
+    policy_state = policy.get_initial_state(environment.batch_size)
     episode_return = 0.0
 
     while not time_step.is_last():
-      action_step = policy.action(time_step)
-      time_step = environment.step(action_step.action)
+      action_step, policy_state, _ = policy.action(time_step, policy_state)
+      time_step = environment.step(action_step)
       episode_return += time_step.reward
     total_return += episode_return
 
@@ -158,7 +154,7 @@ def compute_avg_return(environment, policy, num_episodes=5):
 def train():
   num_iterations = 300000 # @param {type:"integer"}
 
-  initial_collect_steps = 1000 # @param {type:"integer"} 
+  initial_collect_steps = 100 # @param {type:"integer"} 
   collect_steps_per_iteration = 1 # @param {type:"integer"}
 
   batch_size = 32000 # @param {type:"integer"}
@@ -166,6 +162,7 @@ def train():
 
   num_eval_episodes = 10 # @param {type:"integer"}
   eval_interval = 10000 # @param {type:"integer"}
+  train_sequence_length = 20
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -175,16 +172,24 @@ def train():
 
   replay_buffer = create_replay_buffer(tf_agent)
 
-  print('\nCollecting Initial Steps ...')
   initial_collect_driver = dynamic_step_driver.DynamicStepDriver(
           train_env,
           collect_policy,
           observers=[replay_buffer.add_batch],
           num_steps=initial_collect_steps)
-  initial_collect_driver.run()
+
+  # Prepare replay buffer as dataset with invalid transitions filtered.
+  def _filter_invalid_transition(trajectories, unused_arg1):
+    # Reduce filter_fn over full trajectory sampled. The sequence is kept only
+    # if all elements except for the last one pass the filter. This is to
+    # allow training on terminal steps.
+    return tf.reduce_all(~trajectories.is_boundary()[:-1])
 
   dataset = replay_buffer.as_dataset(
-      num_parallel_calls=3, sample_batch_size=batch_size, num_steps=2).prefetch(3)
+      num_parallel_calls=3, 
+      sample_batch_size=batch_size,
+      num_steps=train_sequence_length).unbatch().filter(
+          _filter_invalid_transition).batch(batch_size).prefetch(5)
 
   iterator = iter(dataset)
 
@@ -205,26 +210,35 @@ def train():
 
   tf_agent.train = common.function(tf_agent.train)
   collect_driver.run = common.function(collect_driver.run)
+  initial_collect_driver.run = common.function(initial_collect_driver.run)
+
+  print('\nCollecting Initial Steps ...')
+  initial_collect_driver.run()
 
   # Evaluate the agent's policy once before training.
 
   returns = []
 
-  print('Computing Initial Average Return ...')
-  avg_return = compute_avg_return(eval_env, eval_policy, num_eval_episodes)
-  print(f'Initial Average return: {avg_return}')
-  returns.append(avg_return)
-
   print('\nTraining ...\n')
+  time_step = None
+  policy_state = collect_policy.get_initial_state(train_env.batch_size)
+
+  def train_step():
+    experience, _ = next(iterator)
+    return tf_agent.train(experience)
+  
+  train_step = common.function(train_step)
+
   for _ in range(num_iterations):
 
     # Collect a few steps using collect_policy and save to the replay buffer.
     for _ in range(collect_steps_per_iteration):
-      collect_driver.run()
+      time_step, policy_state = collect_driver.run(
+          time_step=time_step,
+          policy_state=policy_state,
+      )
 
-    # Sample a batch of data from the buffer and update the agent's network.
-    experience, unused_info = next(iterator)
-    train_loss = tf_agent.train(experience)
+    train_loss = train_step()
 
     step = tf_agent.train_step_counter.numpy()
 
@@ -250,9 +264,10 @@ def train():
   print('Running latest model ...')
 
   time_step = eval_env.reset()
+  policy_state = eval_policy.get_initial_state(eval_env.batch_size)
   while True:
-    action_step = eval_policy.action(time_step)
-    time_step = eval_env.step(action_step.action)
+    action_step, policy_state, _ = eval_policy.action(time_step, policy_state)
+    time_step = eval_env.step(action_step)
 
 
 if __name__ == "__main__":
