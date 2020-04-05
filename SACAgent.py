@@ -22,6 +22,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import MarioEnvironment
+import tqdm
 
 
 physical_devices = tf.config.list_physical_devices('GPU') 
@@ -228,25 +229,26 @@ def train():
   policy_state = collect_policy.get_initial_state(train_env.batch_size)
   for iteration_count in range(num_iterations):
 
+    progress = (iteration_count % eval_interval) + 1
+    print(f'progress: {progress}/{eval_interval}', end="\r")
+
     # Collect a few steps using collect_policy and save to the replay buffer.
     time_step, policy_state = collect_driver.run(
         time_step=time_step,
         policy_state=policy_state,
     )
-    
-    print(f'Training iteration: {iteration_count}...')
+        
     train_loss = train_step()
-    print('Done Training.')
 
     step = tf_agent.train_step_counter.numpy()
 
-    if step % log_interval == 0:
-      print('step = {0}: loss = {1}'.format(step, train_loss.loss))
+    # if iteration_count % log_interval == 0:
+    #   print('step = {0}: loss = {1}'.format(step, train_loss.loss))
 
-    if step % eval_interval == 0:
+    if (iteration_count + 1) % eval_interval == 0:
       print(f'Saving at step: {step} ...')
       train_checkpointer.save(global_step=global_step)
-      print('Evaluating ...')
+      print(f'Evaluating iteration: {iteration_count + 1}')
       avg_return = compute_avg_return(eval_env, eval_policy, num_eval_episodes)
       print('step = {0}: Average Return = {1}'.format(step, avg_return))
       returns.append(avg_return)
