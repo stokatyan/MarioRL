@@ -155,6 +155,7 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
+  train_steps_per_iteration = 20
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 15
 
@@ -237,7 +238,9 @@ def train():
         policy_state=policy_state,
     )
         
-    train_loss = train_step()
+    train_loss = 0
+    for _ in range(train_steps_per_iteration):
+      train_loss += train_step()
 
     step = tf_agent.train_step_counter.numpy()
 
