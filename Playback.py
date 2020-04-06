@@ -34,12 +34,12 @@ print(f'Running agent from restored checkpoint: {checkpointer._manager.latest_ch
 
 collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
       eval_env,
-      eval_policy,
-      num_episodes=100)
+      eval_policy)
 
-time_step = None
-policy_state = None
-collect_driver.run(
-    time_step=time_step,
-    policy_state=policy_state,
-)
+while True:
+  time_step = None
+  policy_state = None
+  collect_driver.run(
+      time_step=time_step,
+      policy_state=policy_state,
+  )

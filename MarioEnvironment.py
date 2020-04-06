@@ -136,7 +136,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
     timestep = None
     obs = np.array(obs, dtype=np.float32)
     if time_elapsed > self.game_duration or did_collect:
-      self.reset()
       timestep = ts.termination(obs, reward=reward)
     else:
       timestep = ts.transition(obs, reward=reward, discount=discount)        
@@ -153,7 +152,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     reward = 0
 
     if distance < 0.85:
-      reward = 2500
+      reward = 2500 + (self.collected_coins * 2000)
 
     reward += 5 * (prev_distance - distance)
 
@@ -166,7 +165,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 1000
+      reward += collected_coin_diff * 2000
 
     return reward
 
