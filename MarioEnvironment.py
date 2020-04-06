@@ -120,7 +120,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     latest_collected_coins = obs.pop(0)
     
     did_collect = False
-    if distance < 0.9:
+    if distance < 0.95:
       did_collect = True
 
     reward = self.calculate_reward(
@@ -166,7 +166,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      print(f'Incrermented Game Duration to: {self.game_duration}')
       reward += collected_coin_diff * 1000
 
     return reward

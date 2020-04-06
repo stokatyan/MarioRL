@@ -155,11 +155,11 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
-  train_steps_per_iteration = 50
+  train_steps_per_iteration = 20
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 15
 
-  batch_size = 8000 # @param {type:"integer"}
+  batch_size = 3000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
@@ -225,20 +225,22 @@ def train():
     return tf_agent.train(experience)
   
   train_step = common.function(train_step)
-  time_step = None
-  policy_state = collect_policy.get_initial_state(train_env.batch_size)
+  
   for iteration_count in range(num_iterations):
 
     progress = (iteration_count % eval_interval) + 1
-    print(f'progress: {progress}/{eval_interval}', end="\r")
 
-    # Collect a few steps using collect_policy and save to the replay buffer.
-    time_step, policy_state = collect_driver.run(
+    print(f'progress: {progress}/{eval_interval}', end="\r", flush=True)
+
+    time_step = None
+    policy_state = collect_policy.get_initial_state(train_env.batch_size)
+    collect_driver.run(
         time_step=time_step,
         policy_state=policy_state,
     )
-        
-    for _ in range(train_steps_per_iteration):
+    
+    for index in range(train_steps_per_iteration):
+      print(f'training: {index}/{train_steps_per_iteration} ...', end="\r", flush=True)
       _ = train_step()
 
     step = tf_agent.train_step_counter.numpy()
