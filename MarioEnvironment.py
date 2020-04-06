@@ -57,7 +57,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     self.start_time = time.time()
     self.sleep_time = 0.2
-    self.game_duration = 16
+    self.game_duration = 8
     self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)
     self.prev_vector_obs[self.INDEX_DISTANCE] = self.MAX_DISTANCE
     self.prev_distance = 12
@@ -126,6 +126,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
       latest_collected_coins=latest_collected_coins, 
       small_coin_distances=small_coin_distances,
       prev_small_coin_distances=prev_small_coin_distances)
+
     self.collected_coins = latest_collected_coins
     discount = (self.game_duration - time_elapsed*0.8) / self.game_duration
 
@@ -149,18 +150,18 @@ class MarioEnvironment(py_environment.PyEnvironment):
     reward = 0
 
     if distance < 0.85:
-      reward = 5000
+      reward = 2500
 
-    reward += 15 * (prev_distance - distance)
-    diffs = []
+    reward += 5 * (prev_distance - distance)
+
     for index in range(len(small_coin_distances) - 1):
       scd = small_coin_distances[index]
       p_scd = prev_small_coin_distances[index]
-      diffs.append(f'{p_scd} - {scd}')
       reward += 5 * (p_scd - scd)
 
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
+      self.start_time += time.time() # Collecting a small coin resets the timer
       reward += collected_coin_diff * 1000
 
     return reward
