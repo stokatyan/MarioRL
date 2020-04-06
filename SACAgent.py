@@ -22,6 +22,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import MarioEnvironment
+import PyPipeline as pp
 import tqdm
 
 
@@ -230,7 +231,7 @@ def train():
 
     progress = (iteration_count % eval_interval) + 1
 
-    print(f'progress: {progress}/{eval_interval}', end="\r", flush=True)
+    print(f'progress: {progress}/{eval_interval} ...    ', end="\r", flush=True)
 
     time_step = None
     policy_state = collect_policy.get_initial_state(train_env.batch_size)
@@ -238,9 +239,11 @@ def train():
         time_step=time_step,
         policy_state=policy_state,
     )
+
+    pp.write_no_action()
     
     for index in range(train_steps_per_iteration):
-      print(f'training: {index}/{train_steps_per_iteration} ...', end="\r", flush=True)
+      print(f'training: {index}/{train_steps_per_iteration} ...    ', end="\r", flush=True)
       _ = train_step()
 
     step = tf_agent.train_step_counter.numpy()

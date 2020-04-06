@@ -61,7 +61,11 @@ def write_action(values):
     file = open(f'{path}{action_file}', 'w')
     file.write(f'{json_str}')
     
-    file.close()    
+    file.close()
+
+
+def write_no_action():
+    write_action([0, 0, 0, 0])
 
 
 def write_gameover(reset_type):
