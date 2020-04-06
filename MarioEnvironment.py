@@ -54,10 +54,12 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_SMALL_COIN_DISTANCE = 7
 
     self.MAX_DISTANCE = 12
+    self.START_GAME_DURATION = 6
+    self.BONUS_GAME_DURATION = 2
 
     self.start_time = time.time()
     self.sleep_time = 0.2
-    self.game_duration = 8
+    self.game_duration = 6
     self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)
     self.prev_vector_obs[self.INDEX_DISTANCE] = self.MAX_DISTANCE
     self.prev_distance = 12
@@ -83,6 +85,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
   def _reset(self):
     self.start_time = time.time()
+    self.game_duration = self.START_GAME_DURATION
     pp.write_gameover(self.reset_type)
     time.sleep(self.sleep_time)
 
@@ -161,7 +164,9 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
-      self.start_time += time.time() # Collecting a small coin resets the timer
+      # Collecting a small coin resets the timer
+      self.game_duration += self.BONUS_GAME_DURATION 
+      print(f'Incrermented Game Duration to: {self.game_duration}')
       reward += collected_coin_diff * 1000
 
     return reward
