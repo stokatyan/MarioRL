@@ -66,6 +66,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.min_distance = 12
     self.collected_coins = 0
 
+    self.COLLECT_DISTANCE = 0.95
+
     self.reset_type = 1
 
 
@@ -120,7 +122,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     latest_collected_coins = obs.pop(0)
     
     did_collect = False
-    if distance < 0.95:
+    if distance < self.COLLECT_DISTANCE:
       did_collect = True
 
     reward = self.calculate_reward(
@@ -151,8 +153,9 @@ class MarioEnvironment(py_environment.PyEnvironment):
                         prev_small_coin_distances):
     reward = 0
 
-    if distance < 0.85:
+    if distance < self.COLLECT_DISTANCE:
       reward = 2500 + (self.collected_coins * 2000)
+      return reward
 
     reward += 5 * (prev_distance - distance)
 
