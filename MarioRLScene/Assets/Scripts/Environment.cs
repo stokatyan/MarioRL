@@ -15,6 +15,7 @@ public class Environment : MonoBehaviour
     public float maxZ = 4;
 
     const int maxSmallCoinCount = 5;
+    const int maxEvalSmallCoinCount = 5;
     const float smallCoinFixedY = 1.25f;
     int smallCoinsCollectedCount = 0;
 
@@ -118,7 +119,7 @@ public class Environment : MonoBehaviour
         randomPosition.x = minX;
         mario.SetPosition(randomPosition);
 
-        for (int i = 0; i < 10 ; i++)
+        for (int i = 0; i < maxEvalSmallCoinCount ; i++)
         {
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;

@@ -83,16 +83,25 @@ def create_agent():
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
 
-  # actor_fc_layer_params = (300, 150, 50)
-  # critic_joint_fc_layer_params = (300, 150, 50)
+  input_fc_layer_params = (300, 150, 50)
+  lstm_size = (200, 100, 40)
+  output_fc_layer_params = (300, 150, 50)
+  joint_fc_layer_params = (300, 100)
 
   actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
     observation_spec,
     action_spec,
+    input_fc_layer_params=input_fc_layer_params,
+    lstm_size=lstm_size,
+    output_fc_layer_params=output_fc_layer_params,
     continuous_projection_net=normal_projection_net)
 
   critic_net = critic_rnn_network.CriticRnnNetwork(
-    (observation_spec, action_spec))
+    (observation_spec, action_spec),
+    observation_fc_layer_params=input_fc_layer_params,
+    lstm_size=lstm_size,
+    output_fc_layer_params=output_fc_layer_params,
+    joint_fc_layer_params=joint_fc_layer_params)
   
   tf_agent = sac_agent.SacAgent(
       train_env.time_step_spec(),
@@ -187,7 +196,7 @@ def train():
       train_env,
       initial_collect_policy,
       observers=[replay_buffer.add_batch],
-      num_episodes=initial_collect_episodes)
+      num_episodes=1)
 
   collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
       train_env,
@@ -200,7 +209,8 @@ def train():
   initial_collect_driver.run = common.function(initial_collect_driver.run)
 
   print('\nCollecting Initial Steps ...')
-  initial_collect_driver.run()
+  for _ in range(initial_collect_episodes):
+    initial_collect_driver.run(time_step=None)
 
   dataset = replay_buffer.as_dataset(
       num_parallel_calls=3, 
@@ -217,7 +227,7 @@ def train():
 
   # Evaluate the agent's policy once before training.
 
-  returns = []
+  returns = [0]
 
   print('\nTraining ...\n')
 

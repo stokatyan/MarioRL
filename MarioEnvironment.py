@@ -154,7 +154,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     reward = 0
 
     if distance < self.COLLECT_DISTANCE:
-      reward = 2500 + (self.collected_coins * 2000)
+      reward = 2500
       return reward
 
     reward += 5 * (prev_distance - distance)
@@ -162,13 +162,13 @@ class MarioEnvironment(py_environment.PyEnvironment):
     for index in range(len(small_coin_distances) - 1):
       scd = small_coin_distances[index]
       p_scd = prev_small_coin_distances[index]
-      reward += 5 * (p_scd - scd)
+      reward += 10 * (p_scd - scd)
 
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 2000
+      reward += collected_coin_diff * 5000
 
     return reward
 
