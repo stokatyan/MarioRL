@@ -58,7 +58,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.BONUS_GAME_DURATION = 2
 
     self.start_time = time.time()
-    self.sleep_time = 0.2
+    self.sleep_time = 0.1
     self.game_duration = 6
     self.prev_vector_obs = np.array([0] * 26, dtype=np.float32)
     self.prev_vector_obs[self.INDEX_DISTANCE] = self.MAX_DISTANCE
