@@ -127,7 +127,7 @@ def create_agent():
 
 
 def create_replay_buffer(agent):
-  replay_buffer_capacity = 12000 # @param {type:"integer"}
+  replay_buffer_capacity = 100000 # @param {type:"integer"}
 
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
@@ -170,7 +170,7 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 30
 
-  batch_size = 3500 # @param {type:"integer"}
+  batch_size = 4500 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
