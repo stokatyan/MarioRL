@@ -83,10 +83,10 @@ def create_agent():
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
 
-  input_fc_layer_params = (300, 100, 50)
-  lstm_size = (100, 40)
-  output_fc_layer_params = (300, 100, 50)
-  joint_fc_layer_params = (300, 100)
+  input_fc_layer_params = (200, 50)
+  lstm_size = (40,)
+  output_fc_layer_params = (200, 50)
+  joint_fc_layer_params = (200, 50)
   
 
   actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
@@ -168,9 +168,9 @@ def train():
   num_iterations = 10000 # @param {type:"integer"}
   train_steps_per_iteration = 1
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 30
+  initial_collect_episodes = 1
 
-  batch_size = 4500 # @param {type:"integer"}
+  batch_size = 10000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
@@ -213,21 +213,11 @@ def train():
   for _ in range(initial_collect_episodes):
     initial_collect_driver.run(time_step=None)
 
-  # # Prepare replay buffer as dataset with invalid transitions filtered.
-  def _filter_invalid_transition(trajectories, unused_arg1):
-    # Reduce filter_fn over full trajectory sampled. The sequence is kept only
-    # if all elements except for the last one pass the filter. This is to
-    # allow training on terminal steps.
-    return tf.reduce_all(~trajectories.is_boundary()[:-1])  
-
   dataset = replay_buffer.as_dataset(
-      num_parallel_calls=3, 
+      num_parallel_calls=5, 
       sample_batch_size=batch_size,
-      num_steps=train_sequence_length + 1).unbatch().filter(
-            _filter_invalid_transition).batch(batch_size).prefetch(5)
+      num_steps=train_sequence_length + 1).prefetch(5)
   iterator = iter(dataset)
-
-  
 
   # Evaluate the agent's policy once before training.
 
