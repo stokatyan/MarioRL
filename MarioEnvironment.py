@@ -105,8 +105,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def _step(self, action):
-    # pp.write_action(action)
-    pp.write_action([0,0,0,0])
+    pp.write_action(action)
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
