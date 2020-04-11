@@ -14,13 +14,15 @@ public class Environment : MonoBehaviour
     public float minZ = -4;
     public float maxZ = 4;
 
-    const int maxSmallCoinCount = 5;
-    const int maxEvalSmallCoinCount = 5;
+    const int maxSmallCoinCount = 10;
+    const int maxEvalSmallCoinCount = 10;
     const float smallCoinFixedY = 1.25f;
     int smallCoinsCollectedCount = 0;
 
     float updateFrequency = 0.1f;
     float lastUpdateTime = 0;
+
+    public Transform[] coinPositions;
 
     public delegate void ResetEvent();
     public static event ResetEvent ResetState;
@@ -79,26 +81,13 @@ public class Environment : MonoBehaviour
     void Setup()
     {
         Vector3 randomPosition = CreateRandomPosition();
-        coin.transform.position = randomPosition;
-        randomPosition = CreateRandomPosition();
-        float distance = Vector3.Distance(coin.transform.position, randomPosition);
-        if (distance < 2)
-        {
-            if (maxX - coin.transform.position.x > 2)
-            {
-                randomPosition.x = maxX;
-            } else 
-            {
-                randomPosition.x = minX;
-            }
-        }
         mario.SetPosition(randomPosition);
 
         for (int i = 0; i < maxSmallCoinCount ; i++)
         {
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;
-            distance = Vector3.Distance(mario.transform.position, randomPosition);
+            float distance = Vector3.Distance(mario.transform.position, randomPosition);
             if (distance < 2)
             {
                 continue;
@@ -113,25 +102,14 @@ public class Environment : MonoBehaviour
     void SetupEval()
     {
         Vector3 randomPosition = CreateRandomPosition();
-        randomPosition.x = maxX;
-        coin.transform.position = randomPosition;
-        randomPosition = CreateRandomPosition();
         randomPosition.x = minX;
         mario.SetPosition(randomPosition);
 
-        for (int i = 0; i < maxEvalSmallCoinCount ; i++)
+        for (int i = 0; i < coinPositions.Length ; i++)
         {
-            randomPosition = CreateRandomPosition();
-            randomPosition.y = smallCoinFixedY;
-            float distance = Vector3.Distance(mario.transform.position, randomPosition);
-            if (distance < 2)
-            {
-                continue;
-            }
-
             SmallCoin sc = SmallCoin.Instantiate(smallCoin);
             sc.gameObject.SetActive(true);
-            sc.transform.position = randomPosition;
+            sc.transform.position = coinPositions[i].position;
         }
     }
 
