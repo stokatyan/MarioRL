@@ -84,21 +84,23 @@ def create_agent():
   gradient_clipping = None # @param
 
   input_fc_layer_params = (200, 50)
-  lstm_size = (40,)
+  lstm_size = (50,)
   output_fc_layer_params = (200, 50)
   joint_fc_layer_params = (200, 50)
   
 
   actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
     observation_spec,
-    action_spec,)
+    action_spec,
+    lstm_size=lstm_size)
     # input_fc_layer_params=input_fc_layer_params,
     # lstm_size=lstm_size,
     # output_fc_layer_params=output_fc_layer_params,
     # continuous_projection_net=normal_projection_net)
 
   critic_net = critic_rnn_network.CriticRnnNetwork(
-    (observation_spec, action_spec),)
+    (observation_spec, action_spec),
+    lstm_size=lstm_size)
     # observation_fc_layer_params=input_fc_layer_params,
     # lstm_size=lstm_size,
     # output_fc_layer_params=output_fc_layer_params,
@@ -168,7 +170,7 @@ def train():
   num_iterations = 10000 # @param {type:"integer"}
   train_steps_per_iteration = 1
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 1
+  initial_collect_episodes = 20
 
   batch_size = 10000 # @param {type:"integer"}
 
