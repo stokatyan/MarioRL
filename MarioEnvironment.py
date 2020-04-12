@@ -127,39 +127,36 @@ class MarioEnvironment(py_environment.PyEnvironment):
                        latest_collected_coins, 
                        small_coin_distances, 
                        prev_small_coin_distances):
-    reward = -1.8
+    reward = -2
 
     for index in range(len(small_coin_distances) - 1):
       scd = small_coin_distances[index]
       p_scd = prev_small_coin_distances[index]
       if scd < p_scd:
-        reward += 2
+        reward += 1
       
       if scd < self.MAX_DISTANCE - 0.5:
-        reward += 0.2
+        reward += 0.1
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 20
+      reward += collected_coin_diff * 50
 
+    print(reward)
     return reward
 
 
   def get_observation(self):
     obs_dict = pp.read_observation()
     obs = self.prev_vector_obs
-
+    small_coins_collected = self.collected_coins
     if self.OBS_MARIO_ROTATION in obs_dict:
-      # obs[self.INDEX_DISTANCE] = obs_dict[self.OBS_DISTANCE]
-      # obs[self.INDEX_SMALL_COINS_COLLECTED] = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
       small_coins_collected = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
       obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
       obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
       obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
-      # obs[self.INDEX_COIN_X] = obs_dict[self.OBS_COIN_POSITION][0]
-      # obs[self.INDEX_COIN_Y] = obs_dict[self.OBS_COIN_POSITION][1]
       
       distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
       for index in range(len(distances)):
