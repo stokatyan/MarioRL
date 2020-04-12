@@ -49,7 +49,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_MARIO_ROTATION = 2
     self.INDEX_SMALL_COIN_DISTANCE = 3
 
-    self.START_GAME_DURATION = 100
+    self.START_GAME_DURATION = 10
     self.BONUS_GAME_DURATION = 0
 
     self.start_time = time.time()
