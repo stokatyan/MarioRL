@@ -170,13 +170,13 @@ def train():
   num_iterations = 10000 # @param {type:"integer"}
   train_steps_per_iteration = 1
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 1
+  initial_collect_episodes = 20
 
-  batch_size = 3000 # @param {type:"integer"}
+  batch_size = 8000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 100
+  train_sequence_length = 20
 
   tf_agent = create_agent()
   tf_agent.initialize()
