@@ -28,26 +28,29 @@ class MarioEnvironment(py_environment.PyEnvironment):
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
     self.COUNT_SMALL_COIN_DISTANCES = 19
-    self.OBSERVATION_COUNT = 22
+    self.OBSERVATION_COUNT = 24
     self.MAX_DISTANCE = 12
     min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
     max_distance = [self.MAX_DISTANCE] * self.COUNT_SMALL_COIN_DISTANCES
 
     self._observation_spec = array_spec.BoundedArraySpec(
         shape=(self.OBSERVATION_COUNT,), dtype=np.float32, 
-        minimum=[-4.5, -4.5, 0] + min_distance, 
-        maximum=[4.5, 4.5, 1] + max_distance, 
+        minimum=[-4.5, -4.5, 0, -2.8, -2.8] + min_distance, 
+        maximum=[4.5, 4.5, 1, 2.8, 2.8] + max_distance, 
         name='observation')
 
     self.OBS_MARIO_POSITION = 'marioPosition'
     self.OBS_MARIO_ROTATION = 'marioRotation'
+    self.OBS_MARIO_VELOCITY = 'marioVelocity'
     self.OBS_SMALL_COINS_COLLECTED = 'smallCoinsCollected' 
     self.OBS_SMALL_COIN_DISTANCES = 'smallCoinDistances' 
 
     self.INDEX_MARIO_X = 0
     self.INDEX_MARIO_Y = 1
     self.INDEX_MARIO_ROTATION = 2
-    self.INDEX_SMALL_COIN_DISTANCE = 3
+    self.INDEX_MARIO_VELOCITY_X = 3
+    self.INDEX_MARIO_VELOCITY_Y = 4
+    self.INDEX_SMALL_COIN_DISTANCE = 5
 
     self.START_GAME_DURATION = 10
     self.BONUS_GAME_DURATION = 0
@@ -171,7 +174,9 @@ class MarioEnvironment(py_environment.PyEnvironment):
       obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
       obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
       obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
-      
+      obs[self.INDEX_MARIO_VELOCITY_X] = obs_dict[self.OBS_MARIO_VELOCITY][0]
+      obs[self.INDEX_MARIO_VELOCITY_Y] = obs_dict[self.OBS_MARIO_VELOCITY][1]
+
       distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
       for index in range(len(distances)):
         coin_obs_index = self.INDEX_SMALL_COIN_DISTANCE + index

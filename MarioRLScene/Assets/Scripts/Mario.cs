@@ -25,9 +25,7 @@ public class Mario : MonoBehaviour
     void FixedUpdate()
     {
         HandleMovement();
-
         RaycastSight();
-        
     }
 
     #region Movement
@@ -99,6 +97,14 @@ public class Mario : MonoBehaviour
     public float[] GetDistances() 
     {
         return distances;
+    }
+
+    public float[] GetVelocity()
+    {
+        float[] velocity = new float[2];
+        velocity[0] = rb.velocity.x;
+        velocity[1] = rb.velocity.z;
+        return velocity;
     }
 
     void OnEnable()

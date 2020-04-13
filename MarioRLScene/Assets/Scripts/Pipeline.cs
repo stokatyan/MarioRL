@@ -6,7 +6,6 @@ using System.IO;
 
 public class Pipeline
 {
-
     static string observationPath = "Assets/Resources/environment_output.txt";
     static string gamestatePath = "Assets/Resources/environment_state.txt";
     static string actionPath = "Assets/Resources/environment_input.txt";
@@ -93,6 +92,9 @@ public class Observation
     public float marioRotation = 0;
 
     [SerializeField]
+    public float[] marioVelocity = new float[2];
+
+    [SerializeField]
     public float[] coinPosition = new float[2];
 
     [SerializeField]
@@ -101,13 +103,14 @@ public class Observation
     const float maxRotation = 360;
 
     public Observation(float distance, float[] smallCoinDistances, float[] marioPosition, 
-                        float marioRotation, float[] coinPosition, 
+                        float[] marioVelocity, float marioRotation, float[] coinPosition, 
                         int smallCoinsCollected)
     {
         this.distance = distance;
         this.smallCoinDistances = smallCoinDistances;
         this.marioPosition = marioPosition;
         this.marioRotation = marioRotation;
+        this.marioVelocity = marioVelocity;
 
         if (marioRotation < 0)
         {
