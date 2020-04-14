@@ -170,13 +170,13 @@ def train():
   num_iterations = 10000 # @param {type:"integer"}
   train_steps_per_iteration = 1
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 20
+  initial_collect_episodes = 300
 
-  batch_size = 8000 # @param {type:"integer"}
+  batch_size = 30000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 20
+  train_sequence_length = 5
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -212,7 +212,8 @@ def train():
   initial_collect_driver.run = common.function(initial_collect_driver.run)
 
   print('\nCollecting Initial Steps ...')
-  for _ in range(initial_collect_episodes):
+  for initial_step_index in range(initial_collect_episodes):
+    print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
     initial_collect_driver.run(time_step=None)
 
   dataset = replay_buffer.as_dataset(

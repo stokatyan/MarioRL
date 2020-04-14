@@ -141,9 +141,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
       p_scd = prev_small_coin_distances[index]
       if scd < p_scd:
         reward += 1
-      
-      # if scd < self.MAX_DISTANCE - 0.5:
-      #   reward += 0.1
 
     for position in self.position_history:
       x_diff = abs(position[0] - mario_position[0])
