@@ -28,15 +28,19 @@ class MarioEnvironment(py_environment.PyEnvironment):
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
     self.COUNT_SMALL_COIN_DISTANCES = 19
-    self.OBSERVATION_COUNT = 22
+    self.OBSERVATION_COUNT = 32
     self.MAX_DISTANCE = 12
+    self.COUNT_PREV_MARIO_POS = 10
     min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
     max_distance = [self.MAX_DISTANCE] * self.COUNT_SMALL_COIN_DISTANCES
 
+    min_prev_pos = [-4.5] * self.COUNT_PREV_MARIO_POS
+    max_prev_pos = [4.5] * self.COUNT_PREV_MARIO_POS
+
     self._observation_spec = array_spec.BoundedArraySpec(
         shape=(self.OBSERVATION_COUNT,), dtype=np.float32, 
-        minimum=[-4.5, -4.5, 0] + min_distance, 
-        maximum=[4.5, 4.5, 1] + max_distance, 
+        minimum=[-4.5, -4.5, 0] + min_prev_pos + min_distance, 
+        maximum=[4.5, 4.5, 1] + max_prev_pos + max_distance, 
         name='observation')
 
     self.OBS_MARIO_POSITION = 'marioPosition'
@@ -44,10 +48,13 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.OBS_SMALL_COINS_COLLECTED = 'smallCoinsCollected' 
     self.OBS_SMALL_COIN_DISTANCES = 'smallCoinDistances' 
 
+    
+
     self.INDEX_MARIO_X = 0
     self.INDEX_MARIO_Y = 1
     self.INDEX_MARIO_ROTATION = 2
-    self.INDEX_SMALL_COIN_DISTANCE = 3
+    self.IDEX_PREV_MARIO_POSITIONS = 3
+    self.INDEX_SMALL_COIN_DISTANCE = 12
 
     self.START_GAME_DURATION = 10
     self.BONUS_GAME_DURATION = 0
@@ -86,6 +93,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_vector_obs = np.array([0] * self.OBSERVATION_COUNT, dtype=np.float32)
 
     obs, small_coins_collected = self.get_observation()
+    self.prev_vector_obs = obs
     self.collected_coins = small_coins_collected
     self.position_history = []
     
@@ -164,14 +172,36 @@ class MarioEnvironment(py_environment.PyEnvironment):
     obs = self.prev_vector_obs
     small_coins_collected = self.collected_coins
     if self.OBS_MARIO_ROTATION in obs_dict:
-      small_coins_collected = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
-      obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
-      obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
-      obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
-      
       distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
       for index in range(len(distances)):
         coin_obs_index = self.INDEX_SMALL_COIN_DISTANCE + index
         obs[coin_obs_index] = distances[index]
 
+      prev_pos_x = obs[self.INDEX_MARIO_X]
+      prev_pos_y = obs[self.INDEX_MARIO_Y]
+      for index in range(0, self.COUNT_PREV_MARIO_POS, 2):
+        mario_pos_index_x = self.IDEX_PREV_MARIO_POSITIONS + index
+        mario_pos_index_y = mario_pos_index_x + 1
+
+        tmp_x = obs[mario_pos_index_x]
+        tmp_y = obs[mario_pos_index_y]
+        obs[mario_pos_index_x] = prev_pos_x
+        obs[mario_pos_index_y] = prev_pos_y
+
+        prev_pos_x = tmp_x
+        prev_pos_y = tmp_y
+
+      small_coins_collected = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
+      obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
+      obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
+      obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
+
+        
+
+    string = ""
+    for index in range(self.INDEX_SMALL_COIN_DISTANCE + 2):
+      val = obs[index]
+      string += f'{val}, '
+    print(string)
+        
     return obs, small_coins_collected
