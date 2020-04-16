@@ -28,9 +28,9 @@ class MarioEnvironment(py_environment.PyEnvironment):
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
     self.COUNT_SMALL_COIN_DISTANCES = 19
-    self.OBSERVATION_COUNT = 32
+    self.OBSERVATION_COUNT = 42
     self.MAX_DISTANCE = 12
-    self.COUNT_PREV_MARIO_POS = 10
+    self.COUNT_PREV_MARIO_POS = 20
     min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
     max_distance = [self.MAX_DISTANCE] * self.COUNT_SMALL_COIN_DISTANCES
 
@@ -54,7 +54,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_MARIO_Y = 1
     self.INDEX_MARIO_ROTATION = 2
     self.IDEX_PREV_MARIO_POSITIONS = 3
-    self.INDEX_SMALL_COIN_DISTANCE = 12
+    self.INDEX_SMALL_COIN_DISTANCE = self.IDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
 
     self.START_GAME_DURATION = 10
     self.BONUS_GAME_DURATION = 0
@@ -195,13 +195,5 @@ class MarioEnvironment(py_environment.PyEnvironment):
       obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
       obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
       obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
-
-        
-
-    string = ""
-    for index in range(self.INDEX_SMALL_COIN_DISTANCE + 2):
-      val = obs[index]
-      string += f'{val}, '
-    print(string)
         
     return obs, small_coins_collected
