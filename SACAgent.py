@@ -168,11 +168,11 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
-  train_steps_per_iteration = 1
+  train_steps_per_iteration = 2
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 1
+  initial_collect_episodes = 100
 
-  batch_size = 20000 # @param {type:"integer"}
+  batch_size = 11000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
@@ -216,18 +216,10 @@ def train():
     print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
     initial_collect_driver.run(time_step=None)
 
-  # # Prepare replay buffer as dataset with invalid transitions filtered.	
-  def _filter_invalid_transition(trajectories, unused_arg1):	
-    # Reduce filter_fn over full trajectory sampled. The sequence is kept only	
-    # if all elements except for the last one pass the filter. This is to	
-    # allow training on terminal steps.	
-    return tf.reduce_all(~trajectories.is_boundary()[:-1])
-
   dataset = replay_buffer.as_dataset(
       num_parallel_calls=5, 
       sample_batch_size=batch_size,
-      num_steps=train_sequence_length + 1).unbatch().filter(
-            _filter_invalid_transition).batch(batch_size).prefetch(5)
+      num_steps=train_sequence_length + 1).prefetch(5)
   iterator = iter(dataset)
 
   # Evaluate the agent's policy once before training.
