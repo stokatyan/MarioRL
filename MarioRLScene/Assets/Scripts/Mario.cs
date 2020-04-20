@@ -134,14 +134,15 @@ public class Mario : MonoBehaviour
         for (float i = 1; i <= 10; i++)
         {
             Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
-            float d = RaycastToDirection(direction, fwd);
+            bool isForward = i == 10;
+            float d = RaycastToDirection(direction, fwd, false, isForward);
             distances[distanceIndex] = d;
 
             distanceIndex += 1;
         }
         for (float i = 1; i < 10 ; i++)
         {
-            Vector3 direction = rht*((10-i)/10) + fwd*((i + i)/10.0f);
+            Vector3 direction = rht*((i)/10) + fwd*((10-i) * 2/10.0f);
             float d = RaycastToDirection(direction, fwd, true);
             distances[distanceIndex] = d;
 
@@ -149,7 +150,7 @@ public class Mario : MonoBehaviour
         }
     }
 
-    float RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false)
+    float RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false, bool isForward = false)
     {
         float rootAngle = Vector3.SignedAngle(fwd, Vector3.forward, Vector3.up);
         if (isRightSide)
@@ -175,13 +176,20 @@ public class Mario : MonoBehaviour
         float hitDistance = 12;
         if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinAndWallMask))
         {
+            Color hitColor = Color.green;
+            Color missColor = Color.red;
+            if (isForward)
+            {
+                hitColor = Color.yellow;
+                missColor = Color.magenta;
+            }
             if (hit.transform.gameObject.tag == Tags.smallCoin)
             {
-                Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.green);
+                Debug.DrawRay(rayStart2, hit.point - rayStart2, hitColor);
                 hitDistance = hit.distance;
                 
             } else {
-                Debug.DrawRay(rayStart2, hit.point - rayStart2, Color.red);
+                Debug.DrawRay(rayStart2, hit.point - rayStart2, missColor);
             }            
         }
 
