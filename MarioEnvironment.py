@@ -142,7 +142,12 @@ class MarioEnvironment(py_environment.PyEnvironment):
     return timestep
 
   def forwad_reward(self, distance):
-    return (self.MAX_DISTANCE - distance - 1) / 2
+    return self.MAX_DISTANCE - distance
+
+  def sight_reward(self, index):
+    diff = abs(self.INDEX_FORWARD_DISTANCE - index)
+    reward = (self.INDEX_FORWARD_DISTANCE - diff) + 0.5
+    return reward/2
 
   def calculate_reward(self,
                        latest_collected_coins, 
@@ -158,19 +163,27 @@ class MarioEnvironment(py_environment.PyEnvironment):
       scd = small_coin_distances[index]
       reward += self.forwad_reward(scd)
 
-    for position in self.position_history:
-      x_diff = abs(position[0] - mario_position[0])
-      y_diff = abs(position[1] - mario_position[1])
-      if x_diff < 0.15 and y_diff < 0.15:
-        reward -= 0.5
+    for index in range(len(small_coin_distances)):
+      dist = small_coin_distances[index]
+      if dist < self.MAX_DISTANCE - 1:
+        reward += self.sight_reward(index)
 
-    self.position_history.append(mario_position)
+    # for position in self.position_history:
+    #   x_diff = abs(position[0] - mario_position[0])
+    #   y_diff = abs(position[1] - mario_position[1])
+    #   if x_diff < 0.15 and y_diff < 0.15:
+    #     reward -= 0.1
+
+    # self.position_history.append(mario_position)
+
+    # if abs(mario_position[0]) > 4.4 or abs(mario_position[1]) > 4.4:
+    #   reward -= 500
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 200
+      reward += collected_coin_diff * 1000
 
     return reward
 
