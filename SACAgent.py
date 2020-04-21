@@ -12,7 +12,6 @@ from tf_agents.eval import metric_utils
 from tf_agents.metrics import tf_metrics
 from tf_agents.networks import actor_distribution_rnn_network
 from tf_agents.networks import normal_projection_network
-from tf_agents.agents.sac import tanh_normal_projection_network
 from tf_agents.policies import greedy_policy
 from tf_agents.policies import random_tf_policy
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
@@ -88,6 +87,7 @@ def create_agent():
   actor_fc_layers=(400, 300)
   actor_output_fc_layers=(100,)
   actor_lstm_size=(40,)
+
   critic_obs_fc_layers=None
   critic_action_fc_layers=None
   critic_joint_fc_layers=(300,)
@@ -101,7 +101,7 @@ def create_agent():
     input_fc_layer_params=actor_fc_layers,
     lstm_size=actor_lstm_size,
     output_fc_layer_params=actor_output_fc_layers,
-    continuous_projection_net=tanh_normal_projection_network.TanhNormalProjectionNetwork)
+    continuous_projection_net=normal_projection_net)
 
   critic_net = critic_rnn_network.CriticRnnNetwork(
     (observation_spec, action_spec),
@@ -109,9 +109,7 @@ def create_agent():
     action_fc_layer_params=critic_action_fc_layers,
     joint_fc_layer_params=critic_joint_fc_layers,
     lstm_size=critic_lstm_size,
-    output_fc_layer_params=critic_output_fc_layers,
-    kernel_initializer='glorot_uniform',
-    last_kernel_initializer='glorot_uniform')
+    output_fc_layer_params=critic_output_fc_layers)
   
   tf_agent = sac_agent.SacAgent(
       train_env.time_step_spec(),
@@ -175,11 +173,11 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
-  train_steps_per_iteration = 1
+  train_steps_per_iteration = 3
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 150
 
-  batch_size = 25000 # @param {type:"integer"}
+  batch_size = 20000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}

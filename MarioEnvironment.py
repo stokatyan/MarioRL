@@ -183,7 +183,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 1000
+      reward += collected_coin_diff * 500
 
     return reward
 
