@@ -53,7 +53,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_MARIO_ROTATION = 2
     self.IDEX_PREV_MARIO_POSITIONS = 3
     self.INDEX_SMALL_COIN_DISTANCE = self.IDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
-    self.INDEX_FORWARD_DISTANCE = 9
 
     self.START_GAME_DURATION = 10
     self.BONUS_GAME_DURATION = 0
@@ -133,7 +132,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     timestep = None
     if time_elapsed > self.game_duration:
-      # print()
       # print(self.total_reward)
       timestep = ts.termination(obs, reward=reward)
     else:
@@ -141,13 +139,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     return timestep
 
-  def forwad_reward(self, distance):
-    return self.MAX_DISTANCE - distance
-
-  def sight_reward(self, index):
-    diff = abs(self.INDEX_FORWARD_DISTANCE - index)
-    reward = (self.INDEX_FORWARD_DISTANCE - diff) + 0.5
-    return reward/2
+  def small_coin_reward(self, distance):
+    return 1
 
   def calculate_reward(self,
                        latest_collected_coins, 
@@ -156,34 +149,25 @@ class MarioEnvironment(py_environment.PyEnvironment):
                        mario_position):
     reward = 0
 
-    shift = 1
-    start = self.INDEX_FORWARD_DISTANCE - shift
-    end = self.INDEX_FORWARD_DISTANCE + shift + 1
-    for index in range(start, end):
+    for index in range(len(small_coin_distances) - 1):
       scd = small_coin_distances[index]
-      reward += self.forwad_reward(scd)
+      p_scd = prev_small_coin_distances[index]
+      if scd < p_scd:
+        reward += self.small_coin_reward(scd)
 
-    for index in range(len(small_coin_distances)):
-      dist = small_coin_distances[index]
-      if dist < self.MAX_DISTANCE - 1:
-        reward += self.sight_reward(index)
+    for position in self.position_history:
+      x_diff = abs(position[0] - mario_position[0])
+      y_diff = abs(position[1] - mario_position[1])
+      if x_diff < 0.15 and y_diff < 0.15:
+        reward -= 0.1
 
-    # for position in self.position_history:
-    #   x_diff = abs(position[0] - mario_position[0])
-    #   y_diff = abs(position[1] - mario_position[1])
-    #   if x_diff < 0.15 and y_diff < 0.15:
-    #     reward -= 0.1
-
-    # self.position_history.append(mario_position)
-
-    # if abs(mario_position[0]) > 4.4 or abs(mario_position[1]) > 4.4:
-    #   reward -= 500
+    self.position_history.append(mario_position)
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       # Collecting a small coin resets the timer
       self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 500
+      reward += collected_coin_diff * 200
 
     return reward
 
