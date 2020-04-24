@@ -13,6 +13,7 @@ public class Environment : MonoBehaviour
     public float maxX = 4;
     public float minZ = -4;
     public float maxZ = 4;
+    int consecutiveEvalsCount = 0;
 
     const int maxSmallCoinCount = 10;
     const int maxEvalSmallCoinCount = 10;
@@ -22,6 +23,7 @@ public class Environment : MonoBehaviour
     float updateFrequency = 0.1f;
     float lastUpdateTime = 0;
 
+    public float[] marioYPositions = {-4, -2, 0, 2, 4};
     public Transform[] coinPositions;
 
     public delegate void ResetEvent();
@@ -83,6 +85,8 @@ public class Environment : MonoBehaviour
         Vector3 randomPosition = CreateRandomPosition();
         mario.SetPosition(randomPosition);
 
+        consecutiveEvalsCount = 0;
+
         for (int i = 0; i < maxSmallCoinCount ; i++)
         {
             randomPosition = CreateRandomPosition();
@@ -102,8 +106,15 @@ public class Environment : MonoBehaviour
     void SetupEval()
     {
         Vector3 randomPosition = CreateRandomPosition();
+        randomPosition.z = marioYPositions[consecutiveEvalsCount];
         randomPosition.x = minX;
         mario.SetPosition(randomPosition);
+
+        consecutiveEvalsCount += 1;
+        if (consecutiveEvalsCount >= marioYPositions.Length)
+        {
+            consecutiveEvalsCount = 0;
+        }
 
         for (int i = 0; i < coinPositions.Length ; i++)
         {

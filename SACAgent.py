@@ -168,7 +168,7 @@ def train():
   num_iterations = 10000 # @param {type:"integer"}
   train_steps_per_iteration = 1
   collect_episodes_per_iteration = 1
-  initial_collect_episodes = 150
+  initial_collect_episodes = 1
 
   batch_size = 25000 # @param {type:"integer"}
 
