@@ -43,6 +43,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
         maximum=[4.5, 4.5, 1] + max_prev_pos + max_distance, 
         name='observation')
 
+    self.OBS_DISTANCE = 'distance' 
     self.OBS_MARIO_POSITION = 'marioPosition'
     self.OBS_MARIO_ROTATION = 'marioRotation'
     self.OBS_SMALL_COINS_COLLECTED = 'smallCoinsCollected' 
@@ -64,6 +65,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_vector_obs = np.array([0] * self.OBSERVATION_COUNT, dtype=np.float32)
     self.collected_coins = 0
     self.position_history = []
+    self.prev_distance = self.MAX_DISTANCE
+    self.min_distance = self.MAX_DISTANCE
 
     self.reset_type = 1
     self.total_reward = 0
@@ -92,8 +95,10 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
     self.prev_vector_obs = np.array([0] * self.OBSERVATION_COUNT, dtype=np.float32)
 
-    obs, small_coins_collected = self.get_observation()
+    obs, small_coins_collected, distance = self.get_observation()
     self.prev_vector_obs = obs
+    self.prev_distance = distance
+    self.min_distance = self.MAX_DISTANCE
     self.collected_coins = small_coins_collected
     self.position_history = []
     
@@ -106,24 +111,20 @@ class MarioEnvironment(py_environment.PyEnvironment):
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
-    scd_start = self.INDEX_SMALL_COIN_DISTANCE
-    scd_end = scd_start + self.COUNT_SMALL_COIN_DISTANCES
-
-    prev_small_coin_distances = list(self.prev_vector_obs)[scd_start:scd_end]
-    obs, small_coins_collected = self.get_observation()
+    obs, small_coins_collected, distance = self.get_observation()
     self.prev_vector_obs = obs
     
-    small_coin_distances = list(obs)[scd_start:scd_end]
     latest_collected_coins = small_coins_collected
 
     mario_x = obs[self.INDEX_MARIO_X]
     mario_y = obs[self.INDEX_MARIO_Y]
 
     reward = self.calculate_reward(
-      latest_collected_coins=latest_collected_coins, 
-      small_coin_distances=small_coin_distances,
-      prev_small_coin_distances=prev_small_coin_distances,
+      distance=distance,
+      prev_distance=self.prev_distance,
+      latest_collected_coins=latest_collected_coins,
       mario_position=(mario_x, mario_y))
+    self.prev_distance = distance
 
     self.collected_coins = latest_collected_coins
     discount = 1 # (self.game_duration - time_elapsed) / self.game_duration
@@ -143,31 +144,31 @@ class MarioEnvironment(py_environment.PyEnvironment):
     return 1
 
   def calculate_reward(self,
-                       latest_collected_coins, 
-                       small_coin_distances, 
-                       prev_small_coin_distances,
+                       distance,
+                       prev_distance,
+                       latest_collected_coins,
                        mario_position):
     reward = 0
 
-    for index in range(len(small_coin_distances) - 1):
-      scd = small_coin_distances[index]
-      p_scd = prev_small_coin_distances[index]
-      if scd < p_scd:
-        reward += self.small_coin_reward(scd)
+    if distance < self.min_distance:
+        reward = 100
+        self.min_distance = distance
+    elif distance < prev_distance:
+        reward += 20
+    else:
+      reward -= 30
 
-    for position in self.position_history:
-      x_diff = abs(position[0] - mario_position[0])
-      y_diff = abs(position[1] - mario_position[1])
-      if x_diff < 0.15 and y_diff < 0.15:
-        reward -= 0.1
+    # for position in self.position_history:
+    #   x_diff = abs(position[0] - mario_position[0])
+    #   y_diff = abs(position[1] - mario_position[1])
+    #   if x_diff < 0.15 and y_diff < 0.15:
+    #     reward -= 0.1
 
-    self.position_history.append(mario_position)
+    # self.position_history.append(mario_position)
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
-      # Collecting a small coin resets the timer
-      self.game_duration += self.BONUS_GAME_DURATION 
-      reward += collected_coin_diff * 200
+      self.min_distance = self.MAX_DISTANCE
 
     return reward
 
@@ -176,6 +177,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     obs_dict = pp.read_observation()
     obs = self.prev_vector_obs
     small_coins_collected = self.collected_coins
+    distance = self.prev_distance
     if self.OBS_MARIO_ROTATION in obs_dict:
       distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
       for index in range(len(distances)):
@@ -199,6 +201,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
       small_coins_collected = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
       obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
       obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
-      obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]
-        
-    return obs, small_coins_collected
+      obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]    
+
+      distance = obs_dict[self.OBS_DISTANCE]
+
+    return obs, small_coins_collected, distance

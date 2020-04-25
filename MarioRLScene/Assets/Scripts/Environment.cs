@@ -178,8 +178,8 @@ public class Environment : MonoBehaviour
     {
         Vector2 coinVector = new Vector2(coin.transform.position.x, coin.transform.position.z);
         Vector2 marioVector = new Vector2(mario.transform.position.x, mario.transform.position.z);
-        float distance = Vector2.Distance(coinVector, marioVector);
-
+        float distance = mario.GetNearestCoinDistance();
+    
         float[] marioDistances = mario.GetDistances();
         float[] marioPosition = {marioVector.x, marioVector.y};
         float marioRotation = mario.transform.eulerAngles.y;

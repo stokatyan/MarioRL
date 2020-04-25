@@ -5,6 +5,8 @@ using UnityEngine;
 public class Mario : MonoBehaviour
 {
 
+    const float maxCoinDistance = 12;
+
     public float movementForce;
     public float rotationSpeed;
 
@@ -15,6 +17,9 @@ public class Mario : MonoBehaviour
     public Action currentAction;
 
     float[] distances = new float[19];
+
+    Vector3 nearestCoinPosition;
+    float nearestCoinDistance = maxCoinDistance;
 
     void Awake()
     {
@@ -27,8 +32,14 @@ public class Mario : MonoBehaviour
         HandleMovement();
 
         RaycastSight();
-        
     }
+
+    void OnTriggerEnter(Collider other) {
+        if (other.gameObject.tag == Tags.smallCoin) 
+        {
+            nearestCoinDistance = maxCoinDistance;
+        }
+     }
 
     #region Movement
 
@@ -101,6 +112,11 @@ public class Mario : MonoBehaviour
         return distances;
     }
 
+    public float GetNearestCoinDistance()
+    {
+        return nearestCoinDistance;
+    }
+
     void OnEnable()
     {
         Environment.ResetState += Reset;
@@ -115,6 +131,7 @@ public class Mario : MonoBehaviour
 
     void Reset()
     {
+        nearestCoinDistance = maxCoinDistance;
         RotateTowardsVector(Vector3.forward);
         currentAction = new Action();
     }
@@ -125,6 +142,12 @@ public class Mario : MonoBehaviour
 
     void RaycastSight()
     {       
+
+        if (nearestCoinDistance < maxCoinDistance)
+        {
+            nearestCoinDistance = Vector3.Distance(nearestCoinPosition, transform.position);
+        }
+
         Vector3 fwd = transform.TransformDirection(Vector3.forward);
         Vector3 lft = transform.TransformDirection(Vector3.left);
         Vector3 rht = transform.TransformDirection(Vector3.right);
@@ -187,6 +210,8 @@ public class Mario : MonoBehaviour
             {
                 Debug.DrawRay(rayStart2, hit.point - rayStart2, hitColor);
                 hitDistance = hit.distance;
+
+                UpdateNearestCoinDistance(hit.transform.position);
                 
             } else {
                 Debug.DrawRay(rayStart2, hit.point - rayStart2, missColor);
@@ -194,6 +219,19 @@ public class Mario : MonoBehaviour
         }
 
         return hitDistance;
+    }
+
+    void UpdateNearestCoinDistance(Vector3 newCoinPosition)
+    {
+        Vector2 v1 = new Vector2(transform.position.x, transform.position.z);
+        Vector2 v2 = new Vector2(newCoinPosition.x, newCoinPosition.z);
+
+        float coinDistance = Vector3.Distance(v1, v2);
+        if (coinDistance < nearestCoinDistance)
+        {
+            nearestCoinDistance = coinDistance;
+            nearestCoinPosition = newCoinPosition;
+        }
     }
 
     #endregion
