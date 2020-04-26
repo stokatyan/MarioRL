@@ -27,8 +27,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self._action_spec = array_spec.BoundedArraySpec(
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
-    self.COUNT_SMALL_COIN_DISTANCES = 19
-    self.OBSERVATION_COUNT = 22
+    self.COUNT_SMALL_COIN_DISTANCES = 7
+    self.OBSERVATION_COUNT = 10
     self.MAX_DISTANCE = 12
     self.COUNT_PREV_MARIO_POS = 0
     min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
@@ -52,8 +52,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_MARIO_X = 0
     self.INDEX_MARIO_Y = 1
     self.INDEX_MARIO_ROTATION = 2
-    self.IDEX_PREV_MARIO_POSITIONS = 3
-    self.INDEX_SMALL_COIN_DISTANCE = self.IDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
+    self.INDEX_PREV_MARIO_POSITIONS = 3
+    self.INDEX_SMALL_COIN_DISTANCE = self.INDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
 
     self.START_GAME_DURATION = 10
     self.BONUS_GAME_DURATION = 0
@@ -132,7 +132,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.total_reward += reward * discount
 
     timestep = None
-    if time_elapsed > self.game_duration:
+    if time_elapsed > self.game_duration or self.collected_coins > 0:
       # print(self.total_reward)
       timestep = ts.termination(obs, reward=reward)
     else:
@@ -151,12 +151,12 @@ class MarioEnvironment(py_environment.PyEnvironment):
     reward = 0
 
     if distance < self.min_distance:
-        reward = 100
+        reward += 100
         self.min_distance = distance
     elif distance < prev_distance:
         reward += 20
-    else:
-      reward -= 30
+    elif distance > prev_distance:
+      reward -= 40
 
     # for position in self.position_history:
     #   x_diff = abs(position[0] - mario_position[0])
@@ -169,6 +169,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       self.min_distance = self.MAX_DISTANCE
+      self.prev_distance = self.MAX_DISTANCE
+      reward += 100
 
     return reward
 
@@ -187,7 +189,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
       prev_pos_x = obs[self.INDEX_MARIO_X]
       prev_pos_y = obs[self.INDEX_MARIO_Y]
       for index in range(0, self.COUNT_PREV_MARIO_POS, 2):
-        mario_pos_index_x = self.IDEX_PREV_MARIO_POSITIONS + index
+        mario_pos_index_x = self.INDEX_PREV_MARIO_POSITIONS + index
         mario_pos_index_y = mario_pos_index_x + 1
 
         tmp_x = obs[mario_pos_index_x]

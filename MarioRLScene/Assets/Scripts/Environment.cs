@@ -87,7 +87,7 @@ public class Environment : MonoBehaviour
 
         consecutiveEvalsCount = 0;
 
-        for (int i = 0; i < maxSmallCoinCount ; i++)
+        for (int i = 0; i < maxSmallCoinCount  + 100; i++)
         {
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;
@@ -100,6 +100,7 @@ public class Environment : MonoBehaviour
             SmallCoin sc = SmallCoin.Instantiate(smallCoin);
             sc.gameObject.SetActive(true);
             sc.transform.position = randomPosition;
+            return;
         }
     }
 
@@ -116,7 +117,7 @@ public class Environment : MonoBehaviour
             consecutiveEvalsCount = 0;
         }
 
-        for (int i = 0; i < coinPositions.Length ; i++)
+        for (int i = 0; i < 1 /*coinPositions.Length*/ ; i++)
         {
             SmallCoin sc = SmallCoin.Instantiate(smallCoin);
             sc.gameObject.SetActive(true);
