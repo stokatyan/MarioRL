@@ -132,7 +132,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.total_reward += reward * discount
 
     timestep = None
-    if time_elapsed > self.game_duration or self.collected_coins > 0:
+    if time_elapsed > self.game_duration:
+      # print()
       # print(self.total_reward)
       timestep = ts.termination(obs, reward=reward)
     else:
@@ -150,13 +151,21 @@ class MarioEnvironment(py_environment.PyEnvironment):
                        mario_position):
     reward = 0
 
+    diff = prev_distance - distance
+    r = diff * 10
+    r = r ** 4
+
     if distance < self.min_distance:
+      if self.min_distance == self.MAX_DISTANCE:
         reward += 100
-        self.min_distance = distance
+      else:
+        reward += r
+
+      self.min_distance = distance
     elif distance < prev_distance:
-        reward += 20
+      reward += r * 0.1
     elif distance > prev_distance:
-      reward -= 40
+      reward -= r
 
     # for position in self.position_history:
     #   x_diff = abs(position[0] - mario_position[0])
@@ -170,7 +179,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     if collected_coin_diff > 0:
       self.min_distance = self.MAX_DISTANCE
       self.prev_distance = self.MAX_DISTANCE
-      reward += 100
+      reward = 100
 
     return reward
 

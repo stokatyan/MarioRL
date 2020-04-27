@@ -166,8 +166,8 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
-  train_steps_per_iteration = 10
-  collect_episodes_per_iteration = 1
+  train_steps_per_iteration = 3
+  collect_episodes_per_iteration = 3
   initial_collect_episodes = 1
 
   batch_size = 5000 # @param {type:"integer"}
