@@ -1,1 +1,1 @@
-{"distance":5.61134147644043,"smallCoinDistances":[12.0,12.0,12.0,12.0,12.0,12.0,12.0],"marioPosition":[4.410685062408447,-0.439990371465683],"marioRotation":0.271391361951828,"coinPosition":[-2.374000072479248,1.5499999523162842],"smallCoinsCollected":0}
+{"distance":12.0,"smallCoinDistances":[12.0,12.0,12.0,12.0,12.0,12.0,12.0],"marioPosition":[4.41096830368042,3.1006877422332765],"marioRotation":0.27864980697631838,"coinPosition":[-2.374000072479248,1.5499999523162842],"smallCoinsCollected":0}

@@ -166,15 +166,15 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
-  train_steps_per_iteration = 1
+  train_steps_per_iteration = 10
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 25000 # @param {type:"integer"}
+  batch_size = 5000 # @param {type:"integer"}
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 10
+  train_sequence_length = 45
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -214,6 +214,20 @@ def train():
     print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
     initial_collect_driver.run(time_step=None)
 
+  # Prepare replay buffer as dataset with invalid transitions filtered.
+  def _filter_invalid_transition(trajectories, unused_arg1):
+    # Reduce filter_fn over full trajectory sampled. The sequence is kept only
+    # if all elements except for the last one pass the filter. This is to
+    # allow training on terminal steps.
+    return tf.reduce_all(~trajectories.is_boundary()[:-1])
+
+  # Dataset generates trajectories with shape [Bx2x...]
+  filtered_dataset = replay_buffer.as_dataset(
+        sample_batch_size=batch_size,
+        num_steps=train_sequence_length+1).unbatch().filter(
+            _filter_invalid_transition).batch(batch_size).prefetch(5)
+  filtered_iterator = iter(filtered_dataset)
+
   dataset = replay_buffer.as_dataset(
       num_parallel_calls=5, 
       sample_batch_size=batch_size,
@@ -227,8 +241,10 @@ def train():
   print('\nTraining ...\n')
 
   def train_step():
-    experience, _ = next(iterator)
-    return tf_agent.train(experience)
+    # experience, _ = next(iterator)
+    filtered_exp, _ = next(filtered_iterator)
+    
+    return tf_agent.train(filtered_exp)
   
   train_step = common.function(train_step)
   
