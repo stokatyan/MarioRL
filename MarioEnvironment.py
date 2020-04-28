@@ -106,8 +106,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def _step(self, action):
-    pp.write_action(action)
-    # pp.write_action([0,0,0,0])
+    # pp.write_action(action)
+    pp.write_action([0,0,0,0])
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
@@ -149,31 +149,24 @@ class MarioEnvironment(py_environment.PyEnvironment):
                        prev_distance,
                        latest_collected_coins,
                        mario_position):
+
+    if self.collected_coins > 0:
+      return 0
+    
     reward = 0
-
     diff = prev_distance - distance
-    r = diff * 10
-    r = r ** 4
 
-    if distance < self.min_distance:
-      if self.min_distance == self.MAX_DISTANCE:
-        reward += 100
-      else:
-        reward += r
+    # if distance < self.min_distance:
+    #     reward += 50
+    #     self.min_distance = distance
+    # elif distance < prev_distance:
+    #     reward += 10
+    # elif distance > prev_distance:
+    #   reward -= 40
 
-      self.min_distance = distance
-    elif distance < prev_distance:
-      reward += r * 0.1
-    elif distance > prev_distance:
-      reward -= r
-
-    # for position in self.position_history:
-    #   x_diff = abs(position[0] - mario_position[0])
-    #   y_diff = abs(position[1] - mario_position[1])
-    #   if x_diff < 0.15 and y_diff < 0.15:
-    #     reward -= 0.1
-
-    # self.position_history.append(mario_position)
+    reward = diff * 100
+    if diff < 0:
+      reward *= 3
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:

@@ -166,8 +166,8 @@ def compute_avg_return(environment, policy, num_episodes=5):
 
 def train():
   num_iterations = 10000 # @param {type:"integer"}
-  train_steps_per_iteration = 3
-  collect_episodes_per_iteration = 3
+  train_steps_per_iteration = 1
+  collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
   batch_size = 5000 # @param {type:"integer"}
@@ -227,12 +227,6 @@ def train():
         num_steps=train_sequence_length+1).unbatch().filter(
             _filter_invalid_transition).batch(batch_size).prefetch(5)
   filtered_iterator = iter(filtered_dataset)
-
-  dataset = replay_buffer.as_dataset(
-      num_parallel_calls=5, 
-      sample_batch_size=batch_size,
-      num_steps=train_sequence_length + 1).prefetch(5)
-  iterator = iter(dataset)
 
   # Evaluate the agent's policy once before training.
 
