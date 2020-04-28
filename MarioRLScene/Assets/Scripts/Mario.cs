@@ -16,7 +16,7 @@ public class Mario : MonoBehaviour
     [HideInInspector]
     public Action currentAction;
 
-    float[] distances = new float[7];
+    float[] distances = new float[19];
 
     Vector3 nearestCoinPosition;
     float nearestCoinDistance = maxCoinDistance;
@@ -154,7 +154,7 @@ public class Mario : MonoBehaviour
 
         int distanceIndex = 0;
 
-        for (float i = 7; i <= 10; i++)
+        for (float i = 1; i <= 10; i++)
         {
             Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
             bool isForward = i == 10;
@@ -163,7 +163,7 @@ public class Mario : MonoBehaviour
 
             distanceIndex += 1;
         }
-        for (float i = 1; i < 4; i++)
+        for (float i = 1; i < 10; i++)
         {
             Vector3 direction = rht*((i)/10) + fwd*((10-i) * 2/10.0f);
             float d = RaycastToDirection(direction, fwd, true);

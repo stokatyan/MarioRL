@@ -27,8 +27,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self._action_spec = array_spec.BoundedArraySpec(
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
-    self.COUNT_SMALL_COIN_DISTANCES = 7
-    self.OBSERVATION_COUNT = 10
+    self.COUNT_SMALL_COIN_DISTANCES = 19
+    self.OBSERVATION_COUNT = 22
     self.MAX_DISTANCE = 12
     self.COUNT_PREV_MARIO_POS = 0
     min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
