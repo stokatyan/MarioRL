@@ -25,7 +25,7 @@ public class Pipeline
         return obj;
     }
 
-    public static bool ReadIsGameOver()
+    public static int ReadIsGameOver()
     {
         StreamReader reader = new StreamReader(gamestatePath);
         string json = reader.ReadToEnd();
@@ -33,10 +33,10 @@ public class Pipeline
 
         if (json.Length < 5)
         {
-            return false;
+            return 0;
         }
         GameState obj = JsonUtility.FromJson<GameState>(json);
-        return obj.isGameOver;
+        return obj.gameover;
     }
 
     public static void ClearAction()
@@ -69,14 +69,12 @@ public class Pipeline
 [System.Serializable]
 public class GameState
 {
+    public const int isNotGameover = 0;
+    public const int isGameover = 1;
+    public const int isEvalGameover = 2;
+
     [SerializeField]
     public int gameover = 0;
-
-    public bool isGameOver
-    {
-        get { return gameover == 1; }
-    }
-
 }
 
 [System.Serializable]
@@ -86,16 +84,39 @@ public class Observation
     public float distance = 0;
 
     [SerializeField]
+    public float[] smallCoinDistances = new float[19];
+
+    [SerializeField]
     public float[] marioPosition = new float[2];
+
+    [SerializeField]
+    public float marioRotation = 0;
 
     [SerializeField]
     public float[] coinPosition = new float[2];
 
-    public Observation(float distance, float[] marioPosition, float[] coinPosition)
+    [SerializeField]
+    public int smallCoinsCollected = 0;
+
+    const float maxRotation = 360;
+
+    public Observation(float distance, float[] smallCoinDistances, float[] marioPosition, 
+                        float marioRotation, float[] coinPosition, 
+                        int smallCoinsCollected)
     {
         this.distance = distance;
+        this.smallCoinDistances = smallCoinDistances;
         this.marioPosition = marioPosition;
+        this.marioRotation = marioRotation;
+
+        if (marioRotation < 0)
+        {
+            this.marioRotation += maxRotation;
+        }
+        this.marioRotation /= maxRotation;
+
         this.coinPosition = coinPosition;
+        this.smallCoinsCollected = smallCoinsCollected;
     }
 }
 
