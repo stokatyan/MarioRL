@@ -15,8 +15,7 @@ public class Environment : MonoBehaviour
     public float maxZ = 4;
     int consecutiveEvalsCount = 0;
 
-    const int maxSmallCoinCount = 10;
-    const int maxEvalSmallCoinCount = 10;
+    const int maxSmallCoinCount = 2;
     const float smallCoinFixedY = 1.25f;
     int smallCoinsCollectedCount = 0;
 
@@ -25,6 +24,7 @@ public class Environment : MonoBehaviour
 
     public float[] marioYPositions = {-4, -2, 0, 2, 4};
     public Transform[] coinPositions;
+    int evalCoinPositions = 2;
 
     public delegate void ResetEvent();
     public static event ResetEvent ResetState;
@@ -86,8 +86,8 @@ public class Environment : MonoBehaviour
         mario.SetPosition(randomPosition);
 
         consecutiveEvalsCount = 0;
-
-        for (int i = 0; i < maxSmallCoinCount  + 100; i++)
+        int scc = 0;
+        while (scc < maxSmallCoinCount)
         {
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;
@@ -100,7 +100,7 @@ public class Environment : MonoBehaviour
             SmallCoin sc = SmallCoin.Instantiate(smallCoin);
             sc.gameObject.SetActive(true);
             sc.transform.position = randomPosition;
-            return;
+            scc += 1;
         }
     }
 
@@ -117,8 +117,13 @@ public class Environment : MonoBehaviour
             consecutiveEvalsCount = 0;
         }
 
-        for (int i = 0; i < 1 /*coinPositions.Length*/ ; i++)
+        for (int i = 0; i < coinPositions.Length ; i++)
         {
+            if (i == evalCoinPositions)
+            {
+                return;
+            }
+
             SmallCoin sc = SmallCoin.Instantiate(smallCoin);
             sc.gameObject.SetActive(true);
             sc.transform.position = coinPositions[i].position;
