@@ -157,7 +157,7 @@ def compute_avg_return(environment, policy, num_episodes=5):
     while not time_step.is_last():
       action_step, policy_state, _ = policy.action(time_step, policy_state)
       time_step = environment.step(action_step)
-      episode_return += time_step.reward
+      episode_return += time_step.reward * time_step.discount
     total_return += episode_return
 
   avg_return = total_return / num_episodes

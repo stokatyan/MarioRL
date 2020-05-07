@@ -55,7 +55,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_PREV_MARIO_POSITIONS = 3
     self.INDEX_SMALL_COIN_DISTANCE = self.INDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
 
-    self.START_GAME_DURATION = 10
+    self.START_GAME_DURATION = 7
     self.BONUS_GAME_DURATION = 0
 
     self.start_time = time.time()
@@ -67,6 +67,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.position_history = []
     self.prev_distance = self.MAX_DISTANCE
     self.min_distance = self.MAX_DISTANCE
+
+    self.MAX_POSITION_HISTORY = 30
 
     self.reset_type = 1
     self.total_reward = 0
@@ -127,7 +129,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_distance = distance
 
     self.collected_coins = latest_collected_coins
-    discount = 1 # (self.game_duration - time_elapsed) / self.game_duration
+    discount = ((self.game_duration - time_elapsed) / self.game_duration) + 0.1
 
     self.total_reward += reward * discount
 
@@ -149,24 +151,22 @@ class MarioEnvironment(py_environment.PyEnvironment):
                        prev_distance,
                        latest_collected_coins,
                        mario_position):
-
-    if self.collected_coins > 0:
-      return 0
     
     reward = 0
     diff = prev_distance - distance
 
-    # if distance < self.min_distance:
-    #     reward += 50
-    #     self.min_distance = distance
-    # elif distance < prev_distance:
-    #     reward += 10
-    # elif distance > prev_distance:
-    #   reward -= 40
-
     reward = diff * 100
     if diff < 0:
       reward *= 3
+
+    for position in self.position_history:
+      distance = self.get_distance(mario_position, position)
+      if distance < 0.05:
+        reward -= 1
+
+    self.position_history.append(mario_position)
+    if len(self.position_history) > self.MAX_POSITION_HISTORY:
+      del self.position_history[0]
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
@@ -175,6 +175,10 @@ class MarioEnvironment(py_environment.PyEnvironment):
       reward = 100
 
     return reward
+
+  
+  def get_distance(self, positionA, positionB):
+    return (positionA[0] - positionB[0])**2 + (positionA[1] - positionB[1])**2
 
 
   def get_observation(self):
