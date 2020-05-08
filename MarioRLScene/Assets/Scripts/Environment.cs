@@ -15,7 +15,7 @@ public class Environment : MonoBehaviour
     public float maxZ = 4;
     int consecutiveEvalsCount = 0;
 
-    const int maxSmallCoinCount = 2;
+    const int maxSmallCoinCount = 10;
     const float smallCoinFixedY = 1.25f;
     int smallCoinsCollectedCount = 0;
 
@@ -24,7 +24,7 @@ public class Environment : MonoBehaviour
 
     public float[] marioYPositions = {-4, -2, 0, 2, 4};
     public Transform[] coinPositions;
-    int evalCoinPositions = 2;
+    int evalCoinPositions = 10;
 
     public delegate void ResetEvent();
     public static event ResetEvent ResetState;
