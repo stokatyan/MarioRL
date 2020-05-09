@@ -170,11 +170,13 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 5000 # @param {type:"integer"}
+  batch_size = 10000 # @param {type:"integer"}
+  max_train_size = 1000
+  train_splits = batch_size / max_train_size
 
   num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 45
+  train_sequence_length = 120
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -235,13 +237,25 @@ def train():
   print('\nTraining ...\n')
 
   def train_step():
-    # experience, _ = next(iterator)
     filtered_exp, _ = next(filtered_iterator)
-    
-    return tf_agent.train(filtered_exp)
+
+    for index in range(0, int(train_splits)):
+      split_start = index * max_train_size
+      split_end = split_start + max_train_size
+      traj = trajectory.Trajectory(
+        step_type=filtered_exp.step_type[split_start:split_end],
+        observation=filtered_exp.observation[split_start:split_end],
+        action=filtered_exp.action[split_start:split_end],
+        next_step_type=filtered_exp.next_step_type[split_start:split_end],
+        reward=filtered_exp.reward[split_start:split_end],
+        discount=filtered_exp.discount[split_start:split_end],
+        policy_info = filtered_exp.policy_info[split_start:split_end]
+      )
+      _ = tf_agent.train(traj)
   
+
   train_step = common.function(train_step)
-  
+
   for iteration_count in range(num_iterations):
 
     progress = (iteration_count % eval_interval) + 1
@@ -259,7 +273,7 @@ def train():
     
     for index in range(train_steps_per_iteration):
       print(f'training: {index}/{train_steps_per_iteration} ...    ', end="\r", flush=True)
-      _ = train_step()
+      train_step()
 
     step = tf_agent.train_step_counter.numpy()
 
