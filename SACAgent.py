@@ -46,7 +46,7 @@ constructors = [
   MarioEnvironment.MarioEnvEight,
   MarioEnvironment.MarioEnvNine,
   ]
-train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=True)
+train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=False)
 
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
 

@@ -141,7 +141,8 @@ public class Environment : MonoBehaviour
 
     public Observation GetObservation()
     {
-        Vector2 marioVector = new Vector2(mario.transform.position.x, mario.transform.position.z);
+        Vector2 marioVector = new Vector2(mario.transform.position.x - transform.position.x, 
+                                          mario.transform.position.z - transform.position.z);
         float distance = mario.GetNearestCoinDistance();
     
         float[] marioDistances = mario.GetDistances();
