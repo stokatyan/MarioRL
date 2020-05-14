@@ -20,25 +20,9 @@ public class Environment : MonoBehaviour
     const float smallCoinFixedY = 1.25f;
     int smallCoinsCollectedCount = 0;
 
-    float updateFrequency = 0.1f;
-    float lastUpdateTime = 0;
-
     float[] marioYPositions = {-4, -2, 0, 2, 4};
     public Transform[] coinPositions;
     int evalCoinPositions = 10;
-
-    void Update()
-    {
-        if  (Time.time - lastUpdateTime > updateFrequency) 
-        {
-            SetAgentAction();
-            HandleGameState();
-            WriteObservation();
-            
-            lastUpdateTime = Time.time;
-        }
-        
-    }
 
     #region Events
 
@@ -121,7 +105,7 @@ public class Environment : MonoBehaviour
         Pipeline.WriteGameStarted();
     }
 
-    void ResetEval()
+    public void ResetEval()
     {
         Pipeline.ClearAction();
 
@@ -155,6 +139,13 @@ public class Environment : MonoBehaviour
 
     void WriteObservation()
     {
+        Observation obs = GetObservation();
+
+        Pipeline.WriteObservation(obs);
+    }
+
+    public Observation GetObservation()
+    {
         Vector2 marioVector = new Vector2(mario.transform.position.x, mario.transform.position.z);
         float distance = mario.GetNearestCoinDistance();
     
@@ -164,8 +155,7 @@ public class Environment : MonoBehaviour
 
         Observation obs = new Observation(distance, marioDistances, marioPosition, 
                                           marioRotation, smallCoinsCollectedCount);
-
-        Pipeline.WriteObservation(obs);
+        return obs;
     }
 
     #endregion

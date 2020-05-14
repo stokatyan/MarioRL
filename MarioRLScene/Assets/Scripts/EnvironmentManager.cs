@@ -9,10 +9,12 @@ public class EnvironmentManager : MonoBehaviour
     public Environment[] environments;
     const float environmentSpacing = 14;
 
+    float updateFrequency = 0.1f;
+    float lastUpdateTime = 0;
+
     public delegate void ResetEvent();
     public static event ResetEvent ResetState;
 
-    // Start is called before the first frame update
     void Start()
     {
         for (int i = 0; i < environments.Length; i++)
@@ -33,7 +35,18 @@ public class EnvironmentManager : MonoBehaviour
             Reset();
             return;
         }
+
+        if  (Time.time - lastUpdateTime > updateFrequency) 
+        {
+            SetAgentActions();
+            HandleGameState();
+            WriteObservations();
+            
+            lastUpdateTime = Time.time;
+        }
     }
+
+    #region Lifecycle
 
     void AddEnvironment(int index)
     {
@@ -52,4 +65,48 @@ public class EnvironmentManager : MonoBehaviour
             environments[i].Reset();
         }
     }
+
+    void ResetEval()
+    {
+        for (int i = 0; i < environments.Length; i++)
+        {
+            environments[i].ResetEval();
+        }
+    }
+
+    #endregion
+
+    #region I/O
+
+    void HandleGameState()
+    {
+        int isGameOver = Pipeline.ReadIsGameOver();
+        if (isGameOver == GameState.isGameover)
+        {
+            Reset();
+        } else if (isGameOver == GameState.isEvalGameover)
+        {
+            ResetEval();
+        }
+    }
+
+    void SetAgentActions()
+    {
+        // Action action = Pipeline.ReadAction();
+        // mario.currentAction = action;
+    }
+
+    void WriteObservations()
+    {
+        Observation[] observations = new Observation[environments.Length];
+        for (int i = 0; i < environments.Length; i++)
+        {
+            Observation obs = environments[i].GetObservation();
+            observations[i] = obs;
+        }
+
+        Pipeline.WriteObservations(observations);
+    }
+
+    #endregion
 }

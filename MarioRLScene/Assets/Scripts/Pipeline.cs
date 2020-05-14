@@ -6,7 +6,6 @@ using System.IO;
 
 public class Pipeline
 {
-
     static string observationPath = "Assets/Resources/environment_output.txt";
     static string gamestatePath = "Assets/Resources/environment_state.txt";
     static string actionPath = "Assets/Resources/environment_input.txt";
@@ -49,6 +48,14 @@ public class Pipeline
     public static void WriteObservation(Observation obs)
     {
         string json = JsonUtility.ToJson(obs);
+        StreamWriter writer = new StreamWriter(observationPath, false);
+        writer.WriteLine(json);
+        writer.Close();
+    }
+
+    public static void WriteObservations(Observation[] observations)
+    {
+        string json = JsonHelper.ToJson(observations, true);;
         StreamWriter writer = new StreamWriter(observationPath, false);
         writer.WriteLine(json);
         writer.Close();
