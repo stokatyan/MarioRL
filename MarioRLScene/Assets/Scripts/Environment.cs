@@ -74,7 +74,7 @@ public class Environment : MonoBehaviour
     void SetupEval()
     {
         Vector3 randomPosition = CreateRandomPosition();
-        randomPosition.z = marioYPositions[consecutiveEvalsCount];
+        randomPosition.z = marioYPositions[id % 5];
         randomPosition.x = minX;
         mario.SetPosition(randomPosition + transform.position);
 

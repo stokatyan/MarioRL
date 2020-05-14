@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 import MarioEnvironment
 import PyPipeline as pp
 import tqdm
+import time
 
 
 physical_devices = tf.config.list_physical_devices('GPU') 
@@ -46,9 +47,20 @@ constructors = [
   MarioEnvironment.MarioEnvEight,
   MarioEnvironment.MarioEnvNine,
   ]
-train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=False)
 
+eval_constructors = [
+  MarioEnvironment.MarioEnvZero, 
+  MarioEnvironment.MarioEnvOne,
+  MarioEnvironment.MarioEnvTwo,
+  MarioEnvironment.MarioEnvThree,
+  MarioEnvironment.MarioEnvFour,
+]
+
+train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=False)
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
+
+eval_py_env = parallel_py_environment.ParallelPyEnvironment(eval_constructors, start_serially=True, blocking=False)
+eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
 observation_spec = train_env.observation_spec()
 action_spec = train_env.action_spec()
@@ -155,9 +167,11 @@ def create_checkpointer(max_to_keep, agent, replay_buffer, ckpt_dir="checkpoint"
   )
 
 
-def compute_avg_return(environment, policy, num_episodes=5):
+def compute_avg_return(environment, policy, num_episodes):
   total_return = 0.0
   for _ in range(num_episodes):
+    pp.write_gameover(2)
+    time.sleep(0.15)
     time_step = environment.reset()
     policy_state = policy.get_initial_state(environment.batch_size)
     episode_return = 0.0
@@ -165,10 +179,12 @@ def compute_avg_return(environment, policy, num_episodes=5):
     while not environment._envs[0]._current_time_step.is_last():
       action_step, policy_state, _ = policy.action(time_step, policy_state)
       time_step = environment.step(action_step)
-      episode_return += time_step.reward[0] * time_step.discount[0]
+      for i in range(len(time_step.reward)):
+        episode_return += time_step.reward[i] * time_step.discount[i]
     total_return += episode_return
 
   avg_return = total_return / num_episodes
+  avg_return = avg_return / len(environment._envs)
   return avg_return.numpy()
 
 
@@ -178,11 +194,11 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 20000 # @param {type:"integer"}
+  batch_size = 30000 # @param {type:"integer"}
   max_train_size = 5000
   train_splits = batch_size / max_train_size
 
-  num_eval_episodes = 1 # @param {type:"integer"}
+  num_eval_episodes = 5 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
   train_sequence_length = 40
 
@@ -272,6 +288,8 @@ def train():
     print(f'progress: {progress}/{eval_interval} ...    ', end="\r", flush=True)
 
     time_step = None
+    pp.write_gameover(1)
+    time.sleep(0.15)
     policy_state = collect_policy.get_initial_state(train_env.batch_size)
     collect_driver.run(
         time_step=time_step,
