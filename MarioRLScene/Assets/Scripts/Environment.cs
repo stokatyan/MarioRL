@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class Environment : MonoBehaviour
 {
-    public Coin coin;
+
+    public int id = 0;
     public Mario mario;
     public SmallCoin smallCoin;
 
@@ -26,22 +27,8 @@ public class Environment : MonoBehaviour
     public Transform[] coinPositions;
     int evalCoinPositions = 10;
 
-    public delegate void ResetEvent();
-    public static event ResetEvent ResetState;
-
-    void Start()
-    {
-        Reset();
-    }
-
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.R))
-        {
-            Reset();
-            return;
-        }
-
         if  (Time.time - lastUpdateTime > updateFrequency) 
         {
             SetAgentAction();
@@ -84,14 +71,15 @@ public class Environment : MonoBehaviour
     {
         SmallCoin sc = SmallCoin.Instantiate(smallCoin);
         sc.gameObject.SetActive(true);
-        sc.transform.position = position;
-        sc.transform.parent = this.transform;
+        sc.environmentId = id;
+        sc.transform.position = position + transform.position;
+        sc.transform.parent = transform;
     }
 
     void Setup()
     {
         Vector3 randomPosition = CreateRandomPosition();
-        mario.SetPosition(randomPosition);
+        mario.SetPosition(randomPosition + transform.position);
 
         consecutiveEvalsCount = 0;
         int scc = 0;
@@ -100,7 +88,7 @@ public class Environment : MonoBehaviour
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;
             float distance = Vector3.Distance(mario.transform.position, randomPosition);
-            if (distance < 2)
+            if (distance < 3)
             {
                 continue;
             }
@@ -134,15 +122,11 @@ public class Environment : MonoBehaviour
         }
     }
 
-    void Reset()
+    public void Reset()
     {
         Pipeline.ClearAction();
 
         smallCoinsCollectedCount = 0;
-        if (ResetState != null)
-        {
-            ResetState();
-        }
         Setup();
         
         Pipeline.WriteGameStarted();
@@ -153,10 +137,6 @@ public class Environment : MonoBehaviour
         Pipeline.ClearAction();
 
         smallCoinsCollectedCount = 0;
-        if (ResetState != null)
-        {
-            ResetState();
-        }
         SetupEval();
         
         Pipeline.WriteGameStarted();

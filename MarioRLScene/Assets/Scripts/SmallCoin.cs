@@ -8,6 +8,9 @@ public class SmallCoin : Coin
     public delegate void CollectedEvent();
     public static event CollectedEvent Collected;
 
+    [HideInInspector]
+    public int environmentId = 0;
+
     // Start is called before the first frame update
     void Start()
     {
