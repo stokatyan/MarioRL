@@ -28,10 +28,6 @@ public class EnvironmentManager : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.R))
         {
-            if (ResetState != null)
-            {
-                ResetState();
-            }
             Reset();
             return;
         }
@@ -60,7 +56,11 @@ public class EnvironmentManager : MonoBehaviour
 
     void Reset()
     {
-        // Pipeline.ClearAction();
+        if (ResetState != null)
+        {
+            ResetState();
+        }
+        Pipeline.ClearAction();
         for (int i = 0; i < environments.Length; i++)
         {
             environments[i].Reset();
@@ -69,7 +69,11 @@ public class EnvironmentManager : MonoBehaviour
 
     void ResetEval()
     {
-        // Pipeline.ClearAction();
+        if (ResetState != null)
+        {
+            ResetState();
+        }
+        Pipeline.ClearAction();
         for (int i = 0; i < environments.Length; i++)
         {
             environments[i].ResetEval();
@@ -96,17 +100,20 @@ public class EnvironmentManager : MonoBehaviour
     void SetAgentActions()
     {
         Action[] actions = Pipeline.ReadActions();
+        if (actions == null)
+        {
+            return;
+        }
+        if (actions.Length != environments.Length)
+        {
+            return;
+        }
         for (int i = 0; i < environments.Length; i++)
         {
             Environment env = environments[i];
             if (i < actions.Length)
             {
                 env.SetAgentAction(actions[i]);
-            }
-            else 
-            {
-                Action noAction = new Action();
-                env.SetAgentAction(noAction);
             }
         }
     }

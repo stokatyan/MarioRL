@@ -33,13 +33,15 @@ def read_gamestate():
 
 
 def read_observation():
-    return read_json(observation_file)
+    items_json = read_json(observation_file)
+    observation_array = items_json['Items']
+    return observation_array
 
 
-def write_action(values):
+def write_actions(values):
     """
-    Converts a given array of values to an action json that the agent can respond to.
-    Contents of the array should correspend to: [left, right, up down].
+    Converts a given list of array of values to an action json that the agent can respond to.
+    Contents of the given array should correspend to: [[left, right, up down]].
 
     The final json is written to the action file
     """
@@ -50,13 +52,19 @@ def write_action(values):
 
     directions = [kLeft, kRight, kUp, kDown]
 
-    actions = {}
-    if len(values) is 4:
+    actions = []
+    for actionList in values:
+        act = {}
         for index in range(4):
-            val = values[index]
-            actions[directions[index]] = float(val)
+            val = actionList[index]
+            act[directions[index]] = float(val)
+        
+        actions.append(act)
 
     json_str = json.dumps(actions)
+
+    json_str = "{\"Items\":" + json_str
+    json_str = json_str + "}"
     
     file = open(f'{path}{action_file}', 'w')
     file.write(f'{json_str}')

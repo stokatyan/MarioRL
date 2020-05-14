@@ -45,7 +45,7 @@ public class Environment : MonoBehaviour
         SmallCoin sc = SmallCoin.Instantiate(smallCoin);
         sc.gameObject.SetActive(true);
         sc.environment = this;
-        sc.transform.position = position + transform.position;
+        sc.transform.position = position;
         sc.transform.parent = transform;
     }
 
@@ -66,7 +66,7 @@ public class Environment : MonoBehaviour
                 continue;
             }
 
-            AddCoin(randomPosition);
+            AddCoin(randomPosition + transform.position);
             scc += 1;
         }
     }
@@ -76,7 +76,7 @@ public class Environment : MonoBehaviour
         Vector3 randomPosition = CreateRandomPosition();
         randomPosition.z = marioYPositions[consecutiveEvalsCount];
         randomPosition.x = minX;
-        mario.SetPosition(randomPosition);
+        mario.SetPosition(randomPosition + transform.position);
 
         consecutiveEvalsCount += 1;
         if (consecutiveEvalsCount >= marioYPositions.Length)

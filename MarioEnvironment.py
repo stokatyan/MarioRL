@@ -108,8 +108,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def _step(self, action):
-    pp.write_action(action)
-    # pp.write_action([0,0,0,0])
+    # pp.write_actions(action)
+    pp.write_actions([[0,0,0,1], [0,1,0,0]])
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
@@ -182,7 +182,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def get_observation(self):
-    obs_dict = pp.read_observation()
+    obs_dict_array = pp.read_observation()
+    obs_dict = obs_dict_array[0]
     obs = self.prev_vector_obs
     small_coins_collected = self.collected_coins
     distance = self.prev_distance

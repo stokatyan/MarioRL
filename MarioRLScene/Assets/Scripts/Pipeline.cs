@@ -30,6 +30,11 @@ public class Pipeline
         string json = reader.ReadToEnd();
         reader.Close();
 
+        if (json.Length < 5)
+        {
+            return new Action[0];
+        }
+
         Action[] actions = JsonHelper.FromJson<Action>(json);
         return actions;
     }
