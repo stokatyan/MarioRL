@@ -22,7 +22,7 @@ public class Environment : MonoBehaviour
     float updateFrequency = 0.1f;
     float lastUpdateTime = 0;
 
-    public float[] marioYPositions = {-4, -2, 0, 2, 4};
+    float[] marioYPositions = {-4, -2, 0, 2, 4};
     public Transform[] coinPositions;
     int evalCoinPositions = 10;
 
@@ -80,6 +80,14 @@ public class Environment : MonoBehaviour
         return new Vector3(Random.Range(minX, maxX), 0, Random.Range(minZ, maxZ));
     }
 
+    void AddCoin(Vector3 position)
+    {
+        SmallCoin sc = SmallCoin.Instantiate(smallCoin);
+        sc.gameObject.SetActive(true);
+        sc.transform.position = position;
+        sc.transform.parent = this.transform;
+    }
+
     void Setup()
     {
         Vector3 randomPosition = CreateRandomPosition();
@@ -97,9 +105,7 @@ public class Environment : MonoBehaviour
                 continue;
             }
 
-            SmallCoin sc = SmallCoin.Instantiate(smallCoin);
-            sc.gameObject.SetActive(true);
-            sc.transform.position = randomPosition;
+            AddCoin(randomPosition);
             scc += 1;
         }
     }
@@ -124,9 +130,7 @@ public class Environment : MonoBehaviour
                 return;
             }
 
-            SmallCoin sc = SmallCoin.Instantiate(smallCoin);
-            sc.gameObject.SetActive(true);
-            sc.transform.position = coinPositions[i].position;
+            AddCoin(coinPositions[i].position);
         }
     }
 
@@ -182,18 +186,15 @@ public class Environment : MonoBehaviour
 
     void WriteObservation()
     {
-        Vector2 coinVector = new Vector2(coin.transform.position.x, coin.transform.position.z);
         Vector2 marioVector = new Vector2(mario.transform.position.x, mario.transform.position.z);
         float distance = mario.GetNearestCoinDistance();
     
         float[] marioDistances = mario.GetDistances();
         float[] marioPosition = {marioVector.x, marioVector.y};
         float marioRotation = mario.transform.eulerAngles.y;
-        float[] coinPosition = {coinVector.x, coinVector.y};
 
-        Observation obs = new Observation(distance, marioDistances, 
-                                            marioPosition, marioRotation, 
-                                            coinPosition, smallCoinsCollectedCount);
+        Observation obs = new Observation(distance, marioDistances, marioPosition, 
+                                          marioRotation, smallCoinsCollectedCount);
 
         Pipeline.WriteObservation(obs);
     }

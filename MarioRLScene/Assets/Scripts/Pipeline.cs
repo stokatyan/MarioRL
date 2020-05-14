@@ -93,16 +93,12 @@ public class Observation
     public float marioRotation = 0;
 
     [SerializeField]
-    public float[] coinPosition = new float[2];
-
-    [SerializeField]
     public int smallCoinsCollected = 0;
 
     const float maxRotation = 360;
 
     public Observation(float distance, float[] smallCoinDistances, float[] marioPosition, 
-                        float marioRotation, float[] coinPosition, 
-                        int smallCoinsCollected)
+                        float marioRotation, int smallCoinsCollected)
     {
         this.distance = distance;
         this.smallCoinDistances = smallCoinDistances;
@@ -115,7 +111,6 @@ public class Observation
         }
         this.marioRotation /= maxRotation;
 
-        this.coinPosition = coinPosition;
         this.smallCoinsCollected = smallCoinsCollected;
     }
 }
