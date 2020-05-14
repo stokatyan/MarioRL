@@ -40,20 +40,9 @@ public class Environment : MonoBehaviour
         
     }
 
-    void OnEnable()
-    {
-        SmallCoin.Collected += CollectedSmallCoin;
-    }
-
-
-    void OnDisable()
-    {
-        SmallCoin.Collected -= CollectedSmallCoin;
-    }
-
     #region Events
 
-    void CollectedSmallCoin()
+    public void CollectedSmallCoin()
     {
         smallCoinsCollectedCount += 1;
     }
@@ -71,7 +60,7 @@ public class Environment : MonoBehaviour
     {
         SmallCoin sc = SmallCoin.Instantiate(smallCoin);
         sc.gameObject.SetActive(true);
-        sc.environmentId = id;
+        sc.environment = this;
         sc.transform.position = position + transform.position;
         sc.transform.parent = transform;
     }
