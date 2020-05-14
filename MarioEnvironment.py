@@ -55,7 +55,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_PREV_MARIO_POSITIONS = 3
     self.INDEX_SMALL_COIN_DISTANCE = self.INDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
 
-    self.START_GAME_DURATION = 15
+    self.START_GAME_DURATION = 8
     self.BONUS_GAME_DURATION = 0
 
     self.start_time = time.time()
