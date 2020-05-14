@@ -25,7 +25,7 @@ import UnityInterface as ui
 
 class MarioEnvironment(py_environment.PyEnvironment):
 
-  def __init__(self):
+  def __init__(self, env_index):
     self._action_spec = array_spec.BoundedArraySpec(
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
@@ -75,8 +75,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.reset_type = 1
     self.total_reward = 0
 
-    self.interface = ui.UnityInterface.getInstance(1)
-    self.env_index = self.interface.init_count
+    self.interface = ui.UnityInterface.getInstance(2)
+    self.env_index = env_index
 
 
   def reset(self):
@@ -219,3 +219,13 @@ class MarioEnvironment(py_environment.PyEnvironment):
       distance = obs_dict[self.OBS_DISTANCE]
 
     return obs, small_coins_collected, distance
+
+
+class MarioEnvZero(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=0)
+
+
+class MarioEnvOne(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=1)

@@ -10,7 +10,6 @@ class UnityInterface:
         if UnityInterface.__instance == None:
             UnityInterface(env_count)
 
-        UnityInterface.__instance.init_count += 1
         return UnityInterface.__instance
 
     def __init__(self, env_count):
@@ -18,11 +17,8 @@ class UnityInterface:
         if UnityInterface.__instance != None:
             raise Exception("This class is a singleton!")
 
-        self.init_count = -2
         self.environment_count = env_count
-        self.actions = [None] * env_count
         self.observations = [None] * env_count
-        self.action_updates = 0
         self.gamestate_updates = 0
         self.sleep_time = 0.1
         UnityInterface.__instance = self
@@ -30,19 +26,12 @@ class UnityInterface:
   
     def update_observations(self):
         self.observations = pp.read_observation()
-
-    def write_actions(self):
-        pp.write_actions(self.actions)
+        
 
     def set_action(self, action_list, env_index):
-        self.actions[env_index] = action_list
-        self.action_updates += 1
-
-        if self.action_updates == self.environment_count:
-            self.action_updates = 0
-            self.write_actions()
-            time.sleep(self.sleep_time)
-            self.update_observations()
+        pp.write_actions(action_list, env_index)
+        time.sleep(self.sleep_time)
+        self.update_observations()
 
     
     def set_gamestate(self, reset_type):

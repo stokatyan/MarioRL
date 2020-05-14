@@ -8,11 +8,13 @@ public class Pipeline
 {
     static string observationPath = "Assets/Resources/environment_output.txt";
     static string gamestatePath = "Assets/Resources/environment_state.txt";
-    static string actionPath = "Assets/Resources/environment_input.txt";
+    static string actionPath = "Assets/Resources/environment_input_";
+    static string actionPathSuffix = ".txt";
 
-    public static Action ReadAction()
+    public static Action ReadAction(int index)
     {
-        StreamReader reader = new StreamReader(actionPath);
+        string path = actionPath + index.ToString() + actionPathSuffix;
+        StreamReader reader = new StreamReader(path);
         string json = reader.ReadToEnd();
         reader.Close();
 
@@ -22,21 +24,6 @@ public class Pipeline
         }
         Action obj = JsonUtility.FromJson<Action>(json);
         return obj;
-    }
-
-    public static Action[] ReadActions()
-    {
-        StreamReader reader = new StreamReader(actionPath);
-        string json = reader.ReadToEnd();
-        reader.Close();
-
-        if (json.Length < 5)
-        {
-            return new Action[0];
-        }
-
-        Action[] actions = JsonHelper.FromJson<Action>(json);
-        return actions;
     }
 
     public static int ReadIsGameOver()
@@ -55,9 +42,14 @@ public class Pipeline
 
     public static void ClearAction()
     {
-        StreamWriter writer = new StreamWriter(actionPath, false);
-        writer.WriteLine("");
-        writer.Close();
+        for (int i = 0; i < 2; i++)
+        {
+            string path = actionPath + i.ToString() + actionPathSuffix;
+            StreamWriter writer = new StreamWriter(path, false);
+            writer.WriteLine("");
+            writer.Close();
+        }
+        
     }
 
     public static void WriteObservation(Observation obs)

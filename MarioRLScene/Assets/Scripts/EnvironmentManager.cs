@@ -99,22 +99,11 @@ public class EnvironmentManager : MonoBehaviour
 
     void SetAgentActions()
     {
-        Action[] actions = Pipeline.ReadActions();
-        if (actions == null)
-        {
-            return;
-        }
-        if (actions.Length != environments.Length)
-        {
-            return;
-        }
         for (int i = 0; i < environments.Length; i++)
         {
             Environment env = environments[i];
-            if (i < actions.Length)
-            {
-                env.SetAgentAction(actions[i]);
-            }
+            Action action = Pipeline.ReadAction(i);
+            env.SetAgentAction(action);
         }
     }
 

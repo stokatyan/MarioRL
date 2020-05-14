@@ -35,14 +35,9 @@ except:
   pass 
 
 
-# train_py_env = MarioEnvironment.MarioEnvironment()
-# eval_py_env = MarioEnvironment.MarioEnvironment()
-# eval_py_env.reset_type = 2
-
-train_py_env = parallel_py_environment.ParallelPyEnvironment([MarioEnvironment.MarioEnvironment]*int(1), start_serially=False)
+train_py_env = parallel_py_environment.ParallelPyEnvironment([MarioEnvironment.MarioEnvZero, MarioEnvironment.MarioEnvOne], start_serially=True, blocking=True)
 
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
-# eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
 observation_spec = train_env.observation_spec()
 action_spec = train_env.action_spec()
