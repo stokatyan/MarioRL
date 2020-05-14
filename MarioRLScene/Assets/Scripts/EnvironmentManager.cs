@@ -7,7 +7,7 @@ public class EnvironmentManager : MonoBehaviour
     public Environment environmentObject;
 
     public Environment[] environments;
-    const float environmentSpacing = 14;
+    const float environmentSpacing = 12;
 
     float updateFrequency = 0.1f;
     float lastUpdateTime = 0;
@@ -49,7 +49,12 @@ public class EnvironmentManager : MonoBehaviour
         Environment env = Environment.Instantiate(environmentObject);
         env.id = index;
         env.gameObject.SetActive(true);
-        env.transform.position = new Vector3(index * environmentSpacing, 0, 0);
+        float y = 0;
+        if (index > 4) {
+            y = -environmentSpacing;
+        }
+
+        env.transform.position = new Vector3((index % 5) * environmentSpacing, 0, y);
         env.transform.parent = transform;
         environments[index] = env;
     }
