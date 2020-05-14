@@ -17,6 +17,7 @@ from tf_agents.policies import random_tf_policy
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
+from tf_agents.environments import parallel_py_environment
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -34,12 +35,14 @@ except:
   pass 
 
 
-train_py_env = MarioEnvironment.MarioEnvironment()
-eval_py_env = MarioEnvironment.MarioEnvironment()
-eval_py_env.reset_type = 2
+# train_py_env = MarioEnvironment.MarioEnvironment()
+# eval_py_env = MarioEnvironment.MarioEnvironment()
+# eval_py_env.reset_type = 2
+
+train_py_env = parallel_py_environment.ParallelPyEnvironment([MarioEnvironment.MarioEnvironment]*int(1), start_serially=False)
 
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
-eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
+# eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
 observation_spec = train_env.observation_spec()
 action_spec = train_env.action_spec()
@@ -185,7 +188,7 @@ def train():
 
   eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
   initial_collect_policy = random_tf_policy.RandomTFPolicy(
-        eval_env.time_step_spec(), eval_env.action_spec())
+        train_env.time_step_spec(), train_env.action_spec())
   collect_policy = tf_agent.collect_policy
 
   train_checkpointer = create_checkpointer(
@@ -281,7 +284,7 @@ def train():
       print(f'Saving at step: {step} ...')
       train_checkpointer.save(global_step=global_step)
       print(f'Evaluating iteration: {iteration_count + 1}')
-      avg_return = compute_avg_return(eval_env, eval_policy, num_eval_episodes)
+      avg_return = compute_avg_return(train_env, eval_policy, num_eval_episodes)
       print('step = {0}: Average Return = {1}'.format(step, avg_return))
       returns.append(avg_return)
 
@@ -295,11 +298,11 @@ def train():
 
   print('Running latest model ...')
 
-  time_step = eval_env.reset()
-  policy_state = eval_policy.get_initial_state(eval_env.batch_size)
-  while True:
-    action_step, policy_state, _ = eval_policy.action(time_step, policy_state)
-    time_step = eval_env.step(action_step)
+  # time_step = train_env.reset()
+  # policy_state = eval_policy.get_initial_state(train_env.batch_size)
+  # while True:
+  #   action_step, policy_state, _ = eval_policy.action(time_step, policy_state)
+  #   time_step = train_env.step(action_step)
 
 
 if __name__ == "__main__":
