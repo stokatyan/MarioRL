@@ -147,19 +147,18 @@ def create_checkpointer(max_to_keep, agent, replay_buffer, ckpt_dir="checkpoint"
 def compute_avg_return(environment, policy, num_episodes=5):
   total_return = 0.0
   for _ in range(num_episodes):
-
     time_step = environment.reset()
     policy_state = policy.get_initial_state(environment.batch_size)
     episode_return = 0.0
 
-    while not time_step.is_last():
+    while not environment._envs[0]._current_time_step.is_last():
       action_step, policy_state, _ = policy.action(time_step, policy_state)
       time_step = environment.step(action_step)
-      episode_return += time_step.reward * time_step.discount
+      episode_return += time_step.reward[0] * time_step.discount[0]
     total_return += episode_return
 
   avg_return = total_return / num_episodes
-  return avg_return.numpy()[0]
+  return avg_return.numpy()
 
 
 def train():
@@ -168,13 +167,13 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 5000 # @param {type:"integer"}
+  batch_size = 20000 # @param {type:"integer"}
   max_train_size = 5000
   train_splits = batch_size / max_train_size
 
-  num_eval_episodes = 5 # @param {type:"integer"}
+  num_eval_episodes = 1 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 45
+  train_sequence_length = 40
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -197,7 +196,7 @@ def train():
       train_env,
       initial_collect_policy,
       observers=[replay_buffer.add_batch],
-      num_episodes=2)
+      num_episodes=1)
 
   collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
       train_env,
