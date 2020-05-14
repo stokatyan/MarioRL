@@ -21,6 +21,8 @@ from tf_agents.specs import array_spec
 import PyPipeline as pp
 import time
 
+import UnityInterface as ui
+
 class MarioEnvironment(py_environment.PyEnvironment):
 
   def __init__(self):
@@ -73,6 +75,9 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.reset_type = 1
     self.total_reward = 0
 
+    self.interface = ui.UnityInterface.getInstance(1)
+    self.env_index = self.interface.init_count
+
 
   def reset(self):
     """Return initial_time_step."""
@@ -109,7 +114,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
   def _step(self, action):
     # pp.write_actions(action)
-    pp.write_actions([[0,0,0,1], [0,1,0,0]])
+    self.interface.set_action(action, self.env_index)
+
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
@@ -182,8 +188,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def get_observation(self):
-    obs_dict_array = pp.read_observation()
-    obs_dict = obs_dict_array[0]
+    obs_dict = self.interface.observations[self.env_index]
+
     obs = self.prev_vector_obs
     small_coins_collected = self.collected_coins
     distance = self.prev_distance
