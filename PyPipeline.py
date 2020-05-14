@@ -35,8 +35,7 @@ def read_gamestate():
 
 def read_observation():
     items_json = read_json(observation_file)
-    observation_array = items_json['Items']
-    return observation_array
+    return items_json
 
 
 def write_actions(values, env_index):

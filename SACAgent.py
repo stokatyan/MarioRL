@@ -129,7 +129,7 @@ def create_replay_buffer(agent):
 
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
-      batch_size=train_env.batch_size,
+      batch_size=2,
       max_length=replay_buffer_capacity)
 
 
@@ -197,7 +197,7 @@ def train():
       train_env,
       initial_collect_policy,
       observers=[replay_buffer.add_batch],
-      num_episodes=1)
+      num_episodes=2)
 
   collect_driver = dynamic_episode_driver.DynamicEpisodeDriver(
       train_env,

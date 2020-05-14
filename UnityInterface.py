@@ -25,7 +25,9 @@ class UnityInterface:
         self.update_observations()
   
     def update_observations(self):
-        self.observations = pp.read_observation()
+        obs = pp.read_observation()
+        if 'Items' in obs:
+            self.observations = obs['Items']
         
 
     def set_action(self, action_list, env_index):
