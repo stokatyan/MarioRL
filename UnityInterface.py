@@ -20,10 +20,10 @@ class UnityInterface:
 
         self.init_count = -2
         self.environment_count = env_count
-        self.gamestate = 0
         self.actions = [None] * env_count
         self.observations = [None] * env_count
         self.action_updates = 0
+        self.gamestate_updates = 0
         self.sleep_time = 0.1
         UnityInterface.__instance = self
         self.update_observations()
@@ -41,6 +41,16 @@ class UnityInterface:
         if self.action_updates == self.environment_count:
             self.action_updates = 0
             self.write_actions()
+            time.sleep(self.sleep_time)
+            self.update_observations()
+
+    
+    def set_gamestate(self, reset_type):
+        """isNoteGameOver = 0, isGameOver = 1, isEvalGameOver = 2"""
+        self.gamestate_updates += 1
+        if self.gamestate_updates == self.environment_count:
+            self.gamestate_updates = 0
+            pp.write_gameover(reset_type)
             time.sleep(self.sleep_time)
             self.update_observations()
             

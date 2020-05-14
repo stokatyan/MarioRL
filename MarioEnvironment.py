@@ -97,8 +97,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
   def _reset(self):
     self.start_time = time.time()
     self.game_duration = self.START_GAME_DURATION
-    pp.write_gameover(self.reset_type)
-    time.sleep(self.sleep_time)
+    self.interface.set_gamestate(self.reset_type)
 
     self.prev_vector_obs = np.array([0] * self.OBSERVATION_COUNT, dtype=np.float32)
 
@@ -113,7 +112,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def _step(self, action):
-    # pp.write_actions(action)
     self.interface.set_action(action, self.env_index)
 
     time.sleep(self.sleep_time)
