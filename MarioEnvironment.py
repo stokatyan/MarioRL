@@ -75,7 +75,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.reset_type = 1
     self.total_reward = 0
 
-    self.interface = ui.UnityInterface.getInstance(2)
+    self.interface = ui.UnityInterface.getInstance(10)
     self.env_index = env_index
 
 
@@ -229,3 +229,43 @@ class MarioEnvZero(MarioEnvironment):
 class MarioEnvOne(MarioEnvironment):
   def __init__(self):
       super().__init__(env_index=1)
+
+
+class MarioEnvTwo(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=2)
+
+
+class MarioEnvThree(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=3)
+
+
+class MarioEnvFour(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=4)
+
+
+class MarioEnvFive(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=5)
+
+
+class MarioEnvSix(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=6)
+
+
+class MarioEnvSeven(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=7)
+
+
+class MarioEnvEight(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=8)
+
+
+class MarioEnvNine(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=9)

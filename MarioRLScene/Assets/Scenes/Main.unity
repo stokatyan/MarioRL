@@ -154,6 +154,14 @@ MonoBehaviour:
   environments:
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!4 &282269806
 Transform:
   m_ObjectHideFlags: 0

@@ -64,9 +64,9 @@ def write_actions(values, env_index):
     file.close()
 
 
-def write_no_action():
-    write_actions([0, 0, 0, 0], 0)
-    write_actions([0, 0, 0, 0], 1)
+def write_no_action():    
+    for i in range(10):
+        write_actions([0, 0, 0, 0], i)
 
 
 def write_gameover(reset_type):

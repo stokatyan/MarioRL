@@ -34,8 +34,19 @@ except:
   # Invalid device or cannot modify virtual devices once initialized. 
   pass 
 
-
-train_py_env = parallel_py_environment.ParallelPyEnvironment([MarioEnvironment.MarioEnvZero, MarioEnvironment.MarioEnvOne], start_serially=True, blocking=True)
+constructors = [
+  MarioEnvironment.MarioEnvZero, 
+  MarioEnvironment.MarioEnvOne,
+  MarioEnvironment.MarioEnvTwo,
+  MarioEnvironment.MarioEnvThree,
+  MarioEnvironment.MarioEnvFour,
+  MarioEnvironment.MarioEnvFive,
+  MarioEnvironment.MarioEnvSix,
+  MarioEnvironment.MarioEnvSeven,
+  MarioEnvironment.MarioEnvEight,
+  MarioEnvironment.MarioEnvNine,
+  ]
+train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=True)
 
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
 
@@ -129,7 +140,7 @@ def create_replay_buffer(agent):
 
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
-      batch_size=2,
+      batch_size=train_env.batch_size,
       max_length=replay_buffer_capacity)
 
 
@@ -209,9 +220,10 @@ def train():
   initial_collect_driver.run = common.function(initial_collect_driver.run)
 
   print('\nCollecting Initial Steps ...')
-  for initial_step_index in range(initial_collect_episodes):
-    print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
-    initial_collect_driver.run(time_step=None)
+  for _ in range(10):
+    for initial_step_index in range(initial_collect_episodes):
+      print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
+      initial_collect_driver.run(time_step=None)
 
   # Prepare replay buffer as dataset with invalid transitions filtered.
   def _filter_invalid_transition(trajectories, unused_arg1):
