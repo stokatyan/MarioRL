@@ -24,6 +24,16 @@ public class Pipeline
         return obj;
     }
 
+    public static Action[] ReadActions()
+    {
+        StreamReader reader = new StreamReader(actionPath);
+        string json = reader.ReadToEnd();
+        reader.Close();
+
+        Action[] actions = JsonHelper.FromJson<Action>(json);
+        return actions;
+    }
+
     public static int ReadIsGameOver()
     {
         StreamReader reader = new StreamReader(gamestatePath);
@@ -55,7 +65,7 @@ public class Pipeline
 
     public static void WriteObservations(Observation[] observations)
     {
-        string json = JsonHelper.ToJson(observations, true);;
+        string json = JsonHelper.ToJson(observations);
         StreamWriter writer = new StreamWriter(observationPath, false);
         writer.WriteLine(json);
         writer.Close();

@@ -97,8 +97,6 @@ public class Environment : MonoBehaviour
 
     public void Reset()
     {
-        Pipeline.ClearAction();
-
         smallCoinsCollectedCount = 0;
         Setup();
         
@@ -107,8 +105,6 @@ public class Environment : MonoBehaviour
 
     public void ResetEval()
     {
-        Pipeline.ClearAction();
-
         smallCoinsCollectedCount = 0;
         SetupEval();
         
@@ -131,9 +127,8 @@ public class Environment : MonoBehaviour
         }
     }
 
-    void SetAgentAction()
+    public void SetAgentAction(Action action)
     {
-        Action action = Pipeline.ReadAction();
         mario.currentAction = action;
     }
 

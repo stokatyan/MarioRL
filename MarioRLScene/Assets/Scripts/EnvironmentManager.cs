@@ -60,6 +60,7 @@ public class EnvironmentManager : MonoBehaviour
 
     void Reset()
     {
+        // Pipeline.ClearAction();
         for (int i = 0; i < environments.Length; i++)
         {
             environments[i].Reset();
@@ -68,6 +69,7 @@ public class EnvironmentManager : MonoBehaviour
 
     void ResetEval()
     {
+        // Pipeline.ClearAction();
         for (int i = 0; i < environments.Length; i++)
         {
             environments[i].ResetEval();
@@ -84,7 +86,8 @@ public class EnvironmentManager : MonoBehaviour
         if (isGameOver == GameState.isGameover)
         {
             Reset();
-        } else if (isGameOver == GameState.isEvalGameover)
+        } 
+        else if (isGameOver == GameState.isEvalGameover)
         {
             ResetEval();
         }
@@ -92,8 +95,20 @@ public class EnvironmentManager : MonoBehaviour
 
     void SetAgentActions()
     {
-        // Action action = Pipeline.ReadAction();
-        // mario.currentAction = action;
+        Action[] actions = Pipeline.ReadActions();
+        for (int i = 0; i < environments.Length; i++)
+        {
+            Environment env = environments[i];
+            if (i < actions.Length)
+            {
+                env.SetAgentAction(actions[i]);
+            }
+            else 
+            {
+                Action noAction = new Action();
+                env.SetAgentAction(noAction);
+            }
+        }
     }
 
     void WriteObservations()
