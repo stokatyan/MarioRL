@@ -60,7 +60,7 @@ public class EnvironmentManager : MonoBehaviour
         {
             ResetState();
         }
-        Pipeline.ClearAction();
+        Pipeline.ClearAction(environments.Length);
         for (int i = 0; i < environments.Length; i++)
         {
             environments[i].Reset();
@@ -73,7 +73,7 @@ public class EnvironmentManager : MonoBehaviour
         {
             ResetState();
         }
-        Pipeline.ClearAction();
+        Pipeline.ClearAction(environments.Length);
         for (int i = 0; i < environments.Length; i++)
         {
             environments[i].ResetEval();

@@ -40,9 +40,9 @@ public class Pipeline
         return obj.gameover;
     }
 
-    public static void ClearAction()
+    public static void ClearAction(int numActionPaths)
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < numActionPaths; i++)
         {
             string path = actionPath + i.ToString() + actionPathSuffix;
             StreamWriter writer = new StreamWriter(path, false);
