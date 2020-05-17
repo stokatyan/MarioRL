@@ -171,7 +171,7 @@ def compute_avg_return(environment, policy, num_episodes):
   total_return = 0.0
   for _ in range(num_episodes):
     pp.write_gameover(2)
-    time.sleep(0.15)
+    time.sleep(0.5)
     time_step = environment.reset()
     policy_state = policy.get_initial_state(environment.batch_size)
     episode_return = 0.0
@@ -194,13 +194,13 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 30000 # @param {type:"integer"}
-  max_train_size = 5000
+  batch_size = 18000 # @param {type:"integer"}
+  max_train_size = 3000
   train_splits = batch_size / max_train_size
 
-  num_eval_episodes = 5 # @param {type:"integer"}
+  num_eval_episodes = 4 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 40
+  train_sequence_length = 55
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -237,8 +237,7 @@ def train():
 
   print('\nCollecting Initial Steps ...')
   for _ in range(10):
-    for initial_step_index in range(initial_collect_episodes):
-      print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
+    for _ in range(initial_collect_episodes):
       initial_collect_driver.run(time_step=None)
 
   # Prepare replay buffer as dataset with invalid transitions filtered.
@@ -265,6 +264,7 @@ def train():
     filtered_exp, _ = next(filtered_iterator)
 
     for index in range(0, int(train_splits)):
+      print(f'sub train step: {index}/{int(train_splits)} ...    ', end="\r", flush=True)
       split_start = index * max_train_size
       split_end = split_start + max_train_size
       traj = trajectory.Trajectory(
@@ -289,7 +289,7 @@ def train():
 
     time_step = None
     pp.write_gameover(1)
-    time.sleep(0.15)
+    time.sleep(0.5)
     policy_state = collect_policy.get_initial_state(train_env.batch_size)
     collect_driver.run(
         time_step=time_step,

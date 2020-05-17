@@ -30,7 +30,6 @@ public class Mario : MonoBehaviour
     void FixedUpdate()
     {
         HandleMovement();
-
         RaycastSight();
     }
 
