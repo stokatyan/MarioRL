@@ -160,17 +160,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
     diff = prev_distance - distance
 
     reward = diff * 100
-    if diff < 0:
-      reward *= 3
-
-    for position in self.position_history:
-      distance = self.get_distance(mario_position, position)
-      if distance < 0.05:
-        reward -= 1
-
-    self.position_history.append(mario_position)
-    if len(self.position_history) > self.MAX_POSITION_HISTORY:
-      del self.position_history[0]
+    # if diff < 0:
+    #   reward *= 3
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
