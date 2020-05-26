@@ -160,14 +160,12 @@ class MarioEnvironment(py_environment.PyEnvironment):
     diff = prev_distance - distance
 
     reward = diff * 100
-    # if diff < 0:
-    #   reward *= 3
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       self.min_distance = self.MAX_DISTANCE
       self.prev_distance = self.MAX_DISTANCE
-      reward = 100
+      reward = 500
 
     return reward
 

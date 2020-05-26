@@ -153,7 +153,8 @@ def create_replay_buffer(agent):
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
       batch_size=train_env.batch_size,
-      max_length=replay_buffer_capacity)
+      max_length=replay_buffer_capacity,
+      dataset_window_shift=1)
 
 
 def create_checkpointer(max_to_keep, agent, replay_buffer, ckpt_dir="checkpoint"):
