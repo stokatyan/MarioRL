@@ -84,13 +84,10 @@ public class Environment : MonoBehaviour
             consecutiveEvalsCount = 0;
         }
 
-        for (int i = 0; i < coinPositions.Length ; i++)
+        int startIndex = (id * 10) % 50;
+        int endIndex = startIndex + 10; 
+        for (int i = startIndex; i < endIndex ; i++)
         {
-            if (i == evalCoinPositions)
-            {
-                return;
-            }
-
             AddCoin(coinPositions[i].position);
         }
     }
