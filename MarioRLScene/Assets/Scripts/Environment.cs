@@ -14,15 +14,13 @@ public class Environment : MonoBehaviour
     public float maxX = 4;
     public float minZ = -4;
     public float maxZ = 4;
-    int consecutiveEvalsCount = 0;
 
     const int maxSmallCoinCount = 10;
     const float smallCoinFixedY = 1.25f;
     int smallCoinsCollectedCount = 0;
 
-    float[] marioYPositions = {-4, -2, 0, 2, 4};
+    float[] marioYPositions = {0};
     public Transform[] coinPositions;
-    int evalCoinPositions = 10;
 
     #region Events
 
@@ -54,9 +52,8 @@ public class Environment : MonoBehaviour
         Vector3 randomPosition = CreateRandomPosition();
         mario.SetPosition(randomPosition + transform.position);
 
-        consecutiveEvalsCount = 0;
         int scc = 0;
-        while (scc < maxSmallCoinCount)
+        while (scc < 5)
         {
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;
@@ -74,18 +71,12 @@ public class Environment : MonoBehaviour
     void SetupEval()
     {
         Vector3 randomPosition = CreateRandomPosition();
-        randomPosition.z = marioYPositions[id % 5];
+        randomPosition.z = marioYPositions[id % marioYPositions.Length];
         randomPosition.x = minX;
         mario.SetPosition(randomPosition + transform.position);
 
-        consecutiveEvalsCount += 1;
-        if (consecutiveEvalsCount >= marioYPositions.Length)
-        {
-            consecutiveEvalsCount = 0;
-        }
-
-        int startIndex = (id * 10) % 50;
-        int endIndex = startIndex + 10; 
+        int startIndex = (id * 5) % 25;
+        int endIndex = startIndex + 5; 
         for (int i = startIndex; i < endIndex ; i++)
         {
             AddCoin(coinPositions[i].position);
