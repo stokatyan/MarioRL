@@ -143,7 +143,7 @@ def create_agent():
       reward_scale_factor=reward_scale_factor,
       gradient_clipping=gradient_clipping,
       train_step_counter=global_step,
-      target_entropy=-5)
+      target_entropy=2)
   
   return tf_agent
 
