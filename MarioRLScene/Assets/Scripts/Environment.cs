@@ -21,6 +21,7 @@ public class Environment : MonoBehaviour
 
     float[] marioYPositions = {0};
     public Transform[] coinPositions;
+    int evalCoinPositions = 10;
 
     #region Events
 
@@ -53,7 +54,7 @@ public class Environment : MonoBehaviour
         mario.SetPosition(randomPosition + transform.position);
 
         int scc = 0;
-        while (scc < 5)
+        while (scc < maxSmallCoinCount)
         {
             randomPosition = CreateRandomPosition();
             randomPosition.y = smallCoinFixedY;
@@ -75,8 +76,8 @@ public class Environment : MonoBehaviour
         randomPosition.x = minX;
         mario.SetPosition(randomPosition + transform.position);
 
-        int startIndex = (id * 5) % 25;
-        int endIndex = startIndex + 5; 
+        int startIndex = (id * 10) % 50;
+        int endIndex = startIndex + 10; 
         for (int i = startIndex; i < endIndex ; i++)
         {
             AddCoin(coinPositions[i].position);
