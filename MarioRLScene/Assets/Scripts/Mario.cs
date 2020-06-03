@@ -203,7 +203,6 @@ public class Mario : MonoBehaviour
             if (isForward)
             {
                 hitColor = Color.yellow;
-                missColor = Color.magenta;
             }
             if (hit.transform.gameObject.tag == Tags.smallCoin)
             {
