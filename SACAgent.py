@@ -95,19 +95,19 @@ def restore_agent(ckpt_dir="checkpoint"):
 
 
 def create_agent():
-  critic_learning_rate = 3e-4 # @param {type:"number"}
-  actor_learning_rate = 3e-4 # @param {type:"number"}
-  alpha_learning_rate = 3e-4 # @param {type:"number"}
+  critic_learning_rate = 1e-5 # @param {type:"number"}
+  actor_learning_rate = 1e-5 # @param {type:"number"}
+  alpha_learning_rate = 1e-5 # @param {type:"number"}
   target_update_tau = 0.005 # @param {type:"number"}
   target_update_period = 1 # @param {type:"number"}
   gamma = 0.99 # @param {type:"number"}
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
 
-  input_fc_layer_params = (200, 100)
-  lstm_size = (40,)
-  output_fc_layer_params = (200, 100)
-  joint_fc_layer_params = (200, 100)
+  input_fc_layer_params = (100, 80)
+  lstm_size = (30,)
+  output_fc_layer_params = (100, 80)
+  joint_fc_layer_params = (100, 80)
   
 
   actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
@@ -197,7 +197,7 @@ def train():
   initial_collect_episodes = 1
 
   batch_size = 36000 # @param {type:"integer"}
-  max_train_size = 3000
+  max_train_size = 2000
   train_splits = batch_size / max_train_size
 
   num_eval_episodes = 4 # @param {type:"integer"}
