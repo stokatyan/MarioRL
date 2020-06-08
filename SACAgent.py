@@ -95,19 +95,19 @@ def restore_agent(ckpt_dir="checkpoint"):
 
 
 def create_agent():
-  critic_learning_rate = 1e-5 # @param {type:"number"}
-  actor_learning_rate = 1e-5 # @param {type:"number"}
-  alpha_learning_rate = 1e-5 # @param {type:"number"}
+  critic_learning_rate = 1e-4 # @param {type:"number"}
+  actor_learning_rate = 1e-4 # @param {type:"number"}
+  alpha_learning_rate = 1e-4 # @param {type:"number"}
   target_update_tau = 0.005 # @param {type:"number"}
-  target_update_period = 1 # @param {type:"number"}
+  target_update_period = 20 # @param {type:"number"}
   gamma = 0.99 # @param {type:"number"}
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
 
-  input_fc_layer_params = (100, 80)
-  lstm_size = (30,)
-  output_fc_layer_params = (100, 80)
-  joint_fc_layer_params = (100, 80)
+  input_fc_layer_params = (200, 20)
+  lstm_size = (50,)
+  output_fc_layer_params = (200, 20)
+  joint_fc_layer_params = (200, 20)
   
 
   actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
@@ -149,7 +149,7 @@ def create_agent():
 
 
 def create_replay_buffer(agent):
-  replay_buffer_capacity = 1000000 # @param {type:"integer"}
+  replay_buffer_capacity = 100000 # @param {type:"integer"}
 
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
@@ -196,7 +196,7 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 36000 # @param {type:"integer"}
+  batch_size = 25000 # @param {type:"integer"}
   max_train_size = 2000
   train_splits = batch_size / max_train_size
 
