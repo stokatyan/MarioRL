@@ -76,7 +76,7 @@ public class Environment : MonoBehaviour
         randomPosition.x = minX;
         mario.SetPosition(randomPosition + transform.position);
 
-        int startIndex = (4 * 10) % 50;
+        int startIndex = (id * 10) % 50;
         int endIndex = startIndex + 10; 
         for (int i = startIndex; i < endIndex ; i++)
         {
