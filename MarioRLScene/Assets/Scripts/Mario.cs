@@ -30,7 +30,6 @@ public class Mario : MonoBehaviour
     void FixedUpdate()
     {
         HandleMovement();
-
         RaycastSight();
     }
 
@@ -119,13 +118,13 @@ public class Mario : MonoBehaviour
 
     void OnEnable()
     {
-        Environment.ResetState += Reset;
+        EnvironmentManager.ResetState += Reset;
     }
 
 
     void OnDisable()
     {
-        Environment.ResetState -= Reset;
+        EnvironmentManager.ResetState -= Reset;
     }
 
 
@@ -204,7 +203,6 @@ public class Mario : MonoBehaviour
             if (isForward)
             {
                 hitColor = Color.yellow;
-                missColor = Color.magenta;
             }
             if (hit.transform.gameObject.tag == Tags.smallCoin)
             {

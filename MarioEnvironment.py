@@ -21,9 +21,11 @@ from tf_agents.specs import array_spec
 import PyPipeline as pp
 import time
 
+import UnityInterface as ui
+
 class MarioEnvironment(py_environment.PyEnvironment):
 
-  def __init__(self):
+  def __init__(self, env_index):
     self._action_spec = array_spec.BoundedArraySpec(
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
@@ -55,7 +57,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.INDEX_PREV_MARIO_POSITIONS = 3
     self.INDEX_SMALL_COIN_DISTANCE = self.INDEX_PREV_MARIO_POSITIONS + self.COUNT_PREV_MARIO_POS - 1
 
-    self.START_GAME_DURATION = 5
+    self.START_GAME_DURATION = 12
     self.BONUS_GAME_DURATION = 0
 
     self.start_time = time.time()
@@ -68,8 +70,13 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_distance = self.MAX_DISTANCE
     self.min_distance = self.MAX_DISTANCE
 
+    self.MAX_POSITION_HISTORY = 30
+
     self.reset_type = 1
     self.total_reward = 0
+
+    self.interface = ui.UnityInterface.getInstance(10)
+    self.env_index = env_index
 
 
   def reset(self):
@@ -90,8 +97,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
   def _reset(self):
     self.start_time = time.time()
     self.game_duration = self.START_GAME_DURATION
-    pp.write_gameover(self.reset_type)
-    time.sleep(self.sleep_time)
+    self.interface.set_gamestate(self.reset_type)
 
     self.prev_vector_obs = np.array([0] * self.OBSERVATION_COUNT, dtype=np.float32)
 
@@ -106,8 +112,8 @@ class MarioEnvironment(py_environment.PyEnvironment):
 
 
   def _step(self, action):
-    pp.write_action(action)
-    # pp.write_action([0,0,0,0])
+    self.interface.set_action(action, self.env_index)
+
     time.sleep(self.sleep_time)
     time_elapsed = time.time() - self.start_time
 
@@ -127,7 +133,7 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.prev_distance = distance
 
     self.collected_coins = latest_collected_coins
-    discount = 1 # (self.game_duration - time_elapsed) / self.game_duration
+    discount = ((self.game_duration - time_elapsed) / self.game_duration) + 0.1
 
     self.total_reward += reward * discount
 
@@ -149,64 +155,107 @@ class MarioEnvironment(py_environment.PyEnvironment):
                        prev_distance,
                        latest_collected_coins,
                        mario_position):
-
-    if self.collected_coins > 0:
-      return 0
     
     reward = 0
     diff = prev_distance - distance
 
-    # if distance < self.min_distance:
-    #     reward += 50
-    #     self.min_distance = distance
-    # elif distance < prev_distance:
-    #     reward += 10
-    # elif distance > prev_distance:
-    #   reward -= 40
-
     reward = diff * 100
-    if diff < 0:
-      reward *= 3
     
     collected_coin_diff = latest_collected_coins - self.collected_coins
     if collected_coin_diff > 0:
       self.min_distance = self.MAX_DISTANCE
       self.prev_distance = self.MAX_DISTANCE
-      reward = 100
+      reward = 500
 
     return reward
 
+  
+  def get_distance(self, positionA, positionB):
+    return (positionA[0] - positionB[0])**2 + (positionA[1] - positionB[1])**2
+
 
   def get_observation(self):
-    obs_dict = pp.read_observation()
+    obs_dict = self.interface.observations[self.env_index]
+
     obs = self.prev_vector_obs
     small_coins_collected = self.collected_coins
     distance = self.prev_distance
-    if self.OBS_MARIO_ROTATION in obs_dict:
-      distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
-      for index in range(len(distances)):
-        coin_obs_index = self.INDEX_SMALL_COIN_DISTANCE + index
-        obs[coin_obs_index] = distances[index]
+    if obs_dict is not None:
+      if self.OBS_MARIO_ROTATION in obs_dict:
+        distances = obs_dict[self.OBS_SMALL_COIN_DISTANCES]
+        for index in range(len(distances)):
+          coin_obs_index = self.INDEX_SMALL_COIN_DISTANCE + index
+          obs[coin_obs_index] = distances[index]
 
-      prev_pos_x = obs[self.INDEX_MARIO_X]
-      prev_pos_y = obs[self.INDEX_MARIO_Y]
-      for index in range(0, self.COUNT_PREV_MARIO_POS, 2):
-        mario_pos_index_x = self.INDEX_PREV_MARIO_POSITIONS + index
-        mario_pos_index_y = mario_pos_index_x + 1
+        prev_pos_x = obs[self.INDEX_MARIO_X]
+        prev_pos_y = obs[self.INDEX_MARIO_Y]
+        for index in range(0, self.COUNT_PREV_MARIO_POS, 2):
+          mario_pos_index_x = self.INDEX_PREV_MARIO_POSITIONS + index
+          mario_pos_index_y = mario_pos_index_x + 1
 
-        tmp_x = obs[mario_pos_index_x]
-        tmp_y = obs[mario_pos_index_y]
-        obs[mario_pos_index_x] = prev_pos_x
-        obs[mario_pos_index_y] = prev_pos_y
+          tmp_x = obs[mario_pos_index_x]
+          tmp_y = obs[mario_pos_index_y]
+          obs[mario_pos_index_x] = prev_pos_x
+          obs[mario_pos_index_y] = prev_pos_y
 
-        prev_pos_x = tmp_x
-        prev_pos_y = tmp_y
+          prev_pos_x = tmp_x
+          prev_pos_y = tmp_y
 
-      small_coins_collected = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
-      obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
-      obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
-      obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]    
+        small_coins_collected = obs_dict[self.OBS_SMALL_COINS_COLLECTED]
+        obs[self.INDEX_MARIO_X] = obs_dict[self.OBS_MARIO_POSITION][0]
+        obs[self.INDEX_MARIO_Y] = obs_dict[self.OBS_MARIO_POSITION][1]
+        obs[self.INDEX_MARIO_ROTATION] = obs_dict[self.OBS_MARIO_ROTATION]    
 
-      distance = obs_dict[self.OBS_DISTANCE]
+        distance = obs_dict[self.OBS_DISTANCE]
 
     return obs, small_coins_collected, distance
+
+
+class MarioEnvZero(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=0)
+
+
+class MarioEnvOne(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=1)
+
+
+class MarioEnvTwo(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=2)
+
+
+class MarioEnvThree(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=3)
+
+
+class MarioEnvFour(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=4)
+
+
+class MarioEnvFive(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=5)
+
+
+class MarioEnvSix(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=6)
+
+
+class MarioEnvSeven(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=7)
+
+
+class MarioEnvEight(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=8)
+
+
+class MarioEnvNine(MarioEnvironment):
+  def __init__(self):
+      super().__init__(env_index=9)

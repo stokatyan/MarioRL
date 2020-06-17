@@ -6,14 +6,15 @@ using System.IO;
 
 public class Pipeline
 {
-
     static string observationPath = "Assets/Resources/environment_output.txt";
     static string gamestatePath = "Assets/Resources/environment_state.txt";
-    static string actionPath = "Assets/Resources/environment_input.txt";
+    static string actionPath = "Assets/Resources/environment_input_";
+    static string actionPathSuffix = ".txt";
 
-    public static Action ReadAction()
+    public static Action ReadAction(int index)
     {
-        StreamReader reader = new StreamReader(actionPath);
+        string path = actionPath + index.ToString() + actionPathSuffix;
+        StreamReader reader = new StreamReader(path);
         string json = reader.ReadToEnd();
         reader.Close();
 
@@ -39,16 +40,29 @@ public class Pipeline
         return obj.gameover;
     }
 
-    public static void ClearAction()
+    public static void ClearAction(int numActionPaths)
     {
-        StreamWriter writer = new StreamWriter(actionPath, false);
-        writer.WriteLine("");
-        writer.Close();
+        for (int i = 0; i < numActionPaths; i++)
+        {
+            string path = actionPath + i.ToString() + actionPathSuffix;
+            StreamWriter writer = new StreamWriter(path, false);
+            writer.WriteLine("");
+            writer.Close();
+        }
+        
     }
 
     public static void WriteObservation(Observation obs)
     {
         string json = JsonUtility.ToJson(obs);
+        StreamWriter writer = new StreamWriter(observationPath, false);
+        writer.WriteLine(json);
+        writer.Close();
+    }
+
+    public static void WriteObservations(Observation[] observations)
+    {
+        string json = JsonHelper.ToJson(observations);
         StreamWriter writer = new StreamWriter(observationPath, false);
         writer.WriteLine(json);
         writer.Close();
@@ -93,16 +107,12 @@ public class Observation
     public float marioRotation = 0;
 
     [SerializeField]
-    public float[] coinPosition = new float[2];
-
-    [SerializeField]
     public int smallCoinsCollected = 0;
 
     const float maxRotation = 360;
 
     public Observation(float distance, float[] smallCoinDistances, float[] marioPosition, 
-                        float marioRotation, float[] coinPosition, 
-                        int smallCoinsCollected)
+                        float marioRotation, int smallCoinsCollected)
     {
         this.distance = distance;
         this.smallCoinDistances = smallCoinDistances;
@@ -115,7 +125,6 @@ public class Observation
         }
         this.marioRotation /= maxRotation;
 
-        this.coinPosition = coinPosition;
         this.smallCoinsCollected = smallCoinsCollected;
     }
 }

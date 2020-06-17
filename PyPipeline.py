@@ -9,7 +9,8 @@ path = 'MarioRLScene/Assets/Resources/'
 
 observation_file = 'environment_output.txt'
 gamestate_file = 'environment_state.txt'
-action_file = 'environment_input.txt'
+action_file = 'environment_input_'
+action_file_suffix = '.txt'
 
 def read_json(filename):
     obs = {}
@@ -33,13 +34,14 @@ def read_gamestate():
 
 
 def read_observation():
-    return read_json(observation_file)
+    items_json = read_json(observation_file)
+    return items_json
 
 
-def write_action(values):
+def write_actions(values, env_index):
     """
-    Converts a given array of values to an action json that the agent can respond to.
-    Contents of the array should correspend to: [left, right, up down].
+    Converts a given list of array of values to an action json that the agent can respond to.
+    Contents of the given array should correspend to: [[left, right, up down]].
 
     The final json is written to the action file
     """
@@ -51,21 +53,20 @@ def write_action(values):
     directions = [kLeft, kRight, kUp, kDown]
 
     actions = {}
-    if len(values) is 4:
-        for index in range(4):
-            val = values[index]
-            actions[directions[index]] = float(val)
-
+    for index in range(4):
+        val = values[index]
+        actions[directions[index]] = float(val)
+        
     json_str = json.dumps(actions)
-    
-    file = open(f'{path}{action_file}', 'w')
+    file = open(f'{path}{action_file}{env_index}{action_file_suffix}', 'w')
     file.write(f'{json_str}')
     
     file.close()
 
 
-def write_no_action():
-    write_action([0, 0, 0, 0])
+def write_no_action():    
+    for i in range(10):
+        write_actions([0, 0, 0, 0], i)
 
 
 def write_gameover(reset_type):

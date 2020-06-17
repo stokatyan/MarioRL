@@ -17,6 +17,7 @@ from tf_agents.policies import random_tf_policy
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
+from tf_agents.environments import parallel_py_environment
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -24,6 +25,7 @@ import matplotlib.pyplot as plt
 import MarioEnvironment
 import PyPipeline as pp
 import tqdm
+import time
 
 
 physical_devices = tf.config.list_physical_devices('GPU') 
@@ -33,12 +35,31 @@ except:
   # Invalid device or cannot modify virtual devices once initialized. 
   pass 
 
+constructors = [
+  MarioEnvironment.MarioEnvZero, 
+  MarioEnvironment.MarioEnvOne,
+  MarioEnvironment.MarioEnvTwo,
+  MarioEnvironment.MarioEnvThree,
+  MarioEnvironment.MarioEnvFour,
+  MarioEnvironment.MarioEnvFive,
+  MarioEnvironment.MarioEnvSix,
+  MarioEnvironment.MarioEnvSeven,
+  MarioEnvironment.MarioEnvEight,
+  MarioEnvironment.MarioEnvNine,
+  ]
 
-train_py_env = MarioEnvironment.MarioEnvironment()
-eval_py_env = MarioEnvironment.MarioEnvironment()
-eval_py_env.reset_type = 2
+eval_constructors = [
+  MarioEnvironment.MarioEnvZero, 
+  # MarioEnvironment.MarioEnvOne,
+  # MarioEnvironment.MarioEnvTwo,
+  # MarioEnvironment.MarioEnvThree,
+  # MarioEnvironment.MarioEnvFour,
+]
 
+train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=False)
 train_env = tf_py_environment.TFPyEnvironment(train_py_env)
+
+eval_py_env = parallel_py_environment.ParallelPyEnvironment(eval_constructors, start_serially=True, blocking=False)
 eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
 observation_spec = train_env.observation_spec()
@@ -78,7 +99,7 @@ def create_agent():
   actor_learning_rate = 3e-4 # @param {type:"number"}
   alpha_learning_rate = 3e-4 # @param {type:"number"}
   target_update_tau = 0.005 # @param {type:"number"}
-  target_update_period = 1 # @param {type:"number"}
+  target_update_period = 10 # @param {type:"number"}
   gamma = 0.99 # @param {type:"number"}
   reward_scale_factor = 1.0 # @param {type:"number"}
   gradient_clipping = None # @param
@@ -121,7 +142,8 @@ def create_agent():
       gamma=gamma,
       reward_scale_factor=reward_scale_factor,
       gradient_clipping=gradient_clipping,
-      train_step_counter=global_step)
+      train_step_counter=global_step,
+      target_entropy=-5)
   
   return tf_agent
 
@@ -132,7 +154,8 @@ def create_replay_buffer(agent):
   return tf_uniform_replay_buffer.TFUniformReplayBuffer(
       data_spec=agent.collect_data_spec,
       batch_size=train_env.batch_size,
-      max_length=replay_buffer_capacity)
+      max_length=replay_buffer_capacity,
+      dataset_window_shift=1)
 
 
 def create_checkpointer(max_to_keep, agent, replay_buffer, ckpt_dir="checkpoint"):
@@ -146,22 +169,25 @@ def create_checkpointer(max_to_keep, agent, replay_buffer, ckpt_dir="checkpoint"
   )
 
 
-def compute_avg_return(environment, policy, num_episodes=5):
+def compute_avg_return(environment, policy, num_episodes):
   total_return = 0.0
   for _ in range(num_episodes):
-
+    pp.write_gameover(2)
+    time.sleep(0.5)
     time_step = environment.reset()
     policy_state = policy.get_initial_state(environment.batch_size)
     episode_return = 0.0
 
-    while not time_step.is_last():
+    while not environment._envs[0]._current_time_step.is_last():
       action_step, policy_state, _ = policy.action(time_step, policy_state)
       time_step = environment.step(action_step)
-      episode_return += time_step.reward
+      for i in range(len(time_step.reward)):
+        episode_return += time_step.reward[i] * time_step.discount[i]
     total_return += episode_return
 
   avg_return = total_return / num_episodes
-  return avg_return.numpy()[0]
+  avg_return = avg_return / len(environment._envs)
+  return avg_return.numpy()
 
 
 def train():
@@ -170,11 +196,13 @@ def train():
   collect_episodes_per_iteration = 1
   initial_collect_episodes = 1
 
-  batch_size = 5000 # @param {type:"integer"}
+  batch_size = 21000 # @param {type:"integer"}
+  max_train_size = 3000
+  train_splits = batch_size / max_train_size
 
-  num_eval_episodes = 5 # @param {type:"integer"}
+  num_eval_episodes = 4 # @param {type:"integer"}
   eval_interval = 100 # @param {type:"integer"}
-  train_sequence_length = 45
+  train_sequence_length = 55
 
   tf_agent = create_agent()
   tf_agent.initialize()
@@ -183,7 +211,7 @@ def train():
 
   eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
   initial_collect_policy = random_tf_policy.RandomTFPolicy(
-        eval_env.time_step_spec(), eval_env.action_spec())
+        train_env.time_step_spec(), train_env.action_spec())
   collect_policy = tf_agent.collect_policy
 
   train_checkpointer = create_checkpointer(
@@ -210,9 +238,9 @@ def train():
   initial_collect_driver.run = common.function(initial_collect_driver.run)
 
   print('\nCollecting Initial Steps ...')
-  for initial_step_index in range(initial_collect_episodes):
-    print(f'initial step: {initial_step_index}/{initial_collect_episodes} ...    ', end="\r", flush=True)
-    initial_collect_driver.run(time_step=None)
+  for _ in range(10):
+    for _ in range(initial_collect_episodes):
+      initial_collect_driver.run(time_step=None)
 
   # Prepare replay buffer as dataset with invalid transitions filtered.
   def _filter_invalid_transition(trajectories, unused_arg1):
@@ -235,13 +263,26 @@ def train():
   print('\nTraining ...\n')
 
   def train_step():
-    # experience, _ = next(iterator)
     filtered_exp, _ = next(filtered_iterator)
-    
-    return tf_agent.train(filtered_exp)
+
+    for index in range(0, int(train_splits)):
+      print(f'sub train step: {index}/{int(train_splits)} ...    ', end="\r", flush=True)
+      split_start = index * max_train_size
+      split_end = split_start + max_train_size
+      traj = trajectory.Trajectory(
+        step_type=filtered_exp.step_type[split_start:split_end],
+        observation=filtered_exp.observation[split_start:split_end],
+        action=filtered_exp.action[split_start:split_end],
+        next_step_type=filtered_exp.next_step_type[split_start:split_end],
+        reward=filtered_exp.reward[split_start:split_end],
+        discount=filtered_exp.discount[split_start:split_end],
+        policy_info = filtered_exp.policy_info[split_start:split_end]
+      )
+      _ = tf_agent.train(traj)
   
+
   train_step = common.function(train_step)
-  
+
   for iteration_count in range(num_iterations):
 
     progress = (iteration_count % eval_interval) + 1
@@ -249,6 +290,8 @@ def train():
     print(f'progress: {progress}/{eval_interval} ...    ', end="\r", flush=True)
 
     time_step = None
+    pp.write_gameover(1)
+    time.sleep(0.5)
     policy_state = collect_policy.get_initial_state(train_env.batch_size)
     collect_driver.run(
         time_step=time_step,
@@ -259,7 +302,7 @@ def train():
     
     for index in range(train_steps_per_iteration):
       print(f'training: {index}/{train_steps_per_iteration} ...    ', end="\r", flush=True)
-      _ = train_step()
+      train_step()
 
     step = tf_agent.train_step_counter.numpy()
 
@@ -267,7 +310,7 @@ def train():
       print(f'Saving at step: {step} ...')
       train_checkpointer.save(global_step=global_step)
       print(f'Evaluating iteration: {iteration_count + 1}')
-      avg_return = compute_avg_return(eval_env, eval_policy, num_eval_episodes)
+      avg_return = compute_avg_return(train_env, eval_policy, num_eval_episodes)
       print('step = {0}: Average Return = {1}'.format(step, avg_return))
       returns.append(avg_return)
 
@@ -281,11 +324,11 @@ def train():
 
   print('Running latest model ...')
 
-  time_step = eval_env.reset()
-  policy_state = eval_policy.get_initial_state(eval_env.batch_size)
-  while True:
-    action_step, policy_state, _ = eval_policy.action(time_step, policy_state)
-    time_step = eval_env.step(action_step)
+  # time_step = train_env.reset()
+  # policy_state = eval_policy.get_initial_state(train_env.batch_size)
+  # while True:
+  #   action_step, policy_state, _ = eval_policy.action(time_step, policy_state)
+  #   time_step = train_env.step(action_step)
 
 
 if __name__ == "__main__":

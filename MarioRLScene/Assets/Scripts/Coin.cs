@@ -34,13 +34,13 @@ public class Coin : MonoBehaviour
 
     void OnEnable()
     {
-        Environment.ResetState += Reset;
+        EnvironmentManager.ResetState += Reset;
     }
 
 
     void OnDisable()
     {
-        Environment.ResetState -= Reset;
+        EnvironmentManager.ResetState -= Reset;
     }
 
 
