@@ -170,6 +170,9 @@ MonoBehaviour:
     right: 0
     up: 0
     down: 0
+  hitMat: {fileID: 2100000, guid: 8d274e39d607d6cbf9fb1748b701f1a2, type: 2}
+  missMat: {fileID: 2100000, guid: c45cd6761c315d63cab03c19e7331edc, type: 2}
+  wallDetectionMat: {fileID: 2100000, guid: 032fe86fc86d1b76984f217304f190fe, type: 2}
 --- !u!54 &8296172667701339997
 Rigidbody:
   m_ObjectHideFlags: 0

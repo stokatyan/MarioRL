@@ -18,6 +18,11 @@ public class Mario : MonoBehaviour
 
     float[] distances = new float[19];
 
+    float visionLineWidth = 0.04f;
+
+    LineRenderer[] lines = new LineRenderer[19]; // 19 coin detectors, 5 wall detectors
+    public Material hitMat, missMat, wallDetectionMat;
+
     Vector3 nearestCoinPosition;
     float nearestCoinDistance = maxCoinDistance;
 
@@ -25,6 +30,11 @@ public class Mario : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+    }
+
+    void Start()
+    {
+        SetupLines();
     }
 
     void FixedUpdate()
@@ -39,6 +49,25 @@ public class Mario : MonoBehaviour
             nearestCoinDistance = maxCoinDistance;
         }
      }
+
+    #region Setup
+
+    void SetupLines()
+    {
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var go = new GameObject();
+            var lr = go.AddComponent<LineRenderer>();
+            lr.startWidth = visionLineWidth;
+            lr.endWidth = visionLineWidth;
+            lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            lr.receiveShadows = false;
+            lines[i] = lr;
+            go.transform.parent = gameObject.transform;
+        }
+    }
+
+    #endregion
 
     #region Movement
 
@@ -157,7 +186,7 @@ public class Mario : MonoBehaviour
         {
             Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
             bool isForward = i == 10;
-            float d = RaycastToDirection(direction, fwd, false, isForward);
+            float d = RaycastToDirection(direction, fwd, distanceIndex, false);
             distances[distanceIndex] = d;
 
             distanceIndex += 1;
@@ -165,14 +194,14 @@ public class Mario : MonoBehaviour
         for (float i = 1; i < 10; i++)
         {
             Vector3 direction = rht*((i)/10) + fwd*((10-i) * 2/10.0f);
-            float d = RaycastToDirection(direction, fwd, true);
+            float d = RaycastToDirection(direction, fwd, distanceIndex, true);
             distances[distanceIndex] = d;
 
             distanceIndex += 1;
         }
     }
 
-    float RaycastToDirection(Vector3 direction, Vector3 fwd, bool isRightSide = false, bool isForward = false)
+    float RaycastToDirection(Vector3 direction, Vector3 fwd, int index, bool isRightSide, bool isWallVision = false)
     {
         float rootAngle = Vector3.SignedAngle(fwd, Vector3.forward, Vector3.up);
         if (isRightSide)
@@ -194,27 +223,38 @@ public class Mario : MonoBehaviour
         rayStart.y = y;
         Vector3 rayStart2 = rayStart + new Vector3(x, 0, z);
         RaycastHit hit;
+        float startOffset = Mathf.Abs(Vector3.Distance(rayStart, rayStart2));
 
-        float hitDistance = 12;
+        lines[index].material = wallDetectionMat;
+        lines[index].SetPosition(0, rayStart2);  
+
+        float hitDistance = maxCoinDistance;
+        float endpointDistance = hitDistance;
+        Vector3 endpoint;
         if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinAndWallMask))
         {
-            Color hitColor = Color.green;
-            Color missColor = Color.red;
-            if (isForward)
-            {
-                hitColor = Color.yellow;
-            }
-            if (hit.transform.gameObject.tag == Tags.smallCoin)
-            {
-                Debug.DrawRay(rayStart2, hit.point - rayStart2, hitColor);
-                hitDistance = hit.distance;
+            endpointDistance = hit.distance;
 
+            if (hit.transform.gameObject.tag == Tags.smallCoin && !isWallVision)
+            {
+                lines[index].material = hitMat;
+                hitDistance = hit.distance;
                 UpdateNearestCoinDistance(hit.transform.position);
-                
+            } else if (isWallVision) {
+                hitDistance = hit.distance;
             } else {
-                Debug.DrawRay(rayStart2, hit.point - rayStart2, missColor);
-            }            
+                lines[index].material = missMat;
+            }
+        } else {
+            
+            if (!isWallVision) {
+                lines[index].material = missMat;
+            }
         }
+
+        Ray ray = new Ray(rayStart2, direction);
+        endpoint = ray.GetPoint(endpointDistance - startOffset);
+        lines[index].SetPosition(1, endpoint);
 
         return hitDistance;
     }

@@ -23,6 +23,8 @@ public class Environment : MonoBehaviour
     public Transform[] coinPositions;
     int evalCoinPositions = 10;
 
+    public GameObject obstacle;
+
     #region Events
 
     public void CollectedSmallCoin()
@@ -50,6 +52,8 @@ public class Environment : MonoBehaviour
 
     void Setup()
     {
+        SetupWall();
+
         Vector3 randomPosition = CreateRandomPosition();
         mario.SetPosition(randomPosition + transform.position);
 
@@ -71,6 +75,8 @@ public class Environment : MonoBehaviour
 
     void SetupEval()
     {
+        SetupWall();
+
         Vector3 randomPosition = CreateRandomPosition();
         randomPosition.z = marioYPositions[id % marioYPositions.Length];
         randomPosition.x = minX;
@@ -82,6 +88,21 @@ public class Environment : MonoBehaviour
         {
             AddCoin(coinPositions[i].position);
         }
+    }
+
+    void SetupWall()
+    {
+        obstacle.transform.eulerAngles = new Vector3(
+            obstacle.transform.eulerAngles.x,
+            Random.Range(0f, 360f),
+            obstacle.transform.eulerAngles.z
+        );
+
+        obstacle.transform.localScale = new Vector3(
+            Random.Range(0.4f, 0.75f),
+            obstacle.transform.localScale.y,
+            obstacle.transform.localScale.z
+        );
     }
 
     public void Reset()
