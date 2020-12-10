@@ -15,6 +15,9 @@ public class EnvironmentManager : MonoBehaviour
     public delegate void ResetEvent();
     public static event ResetEvent ResetState;
 
+    public static bool drawCoinVision = true;
+    public static bool drawWallVision = true;
+
     void Start()
     {
         for (int i = 0; i < environments.Length; i++)
@@ -30,6 +33,14 @@ public class EnvironmentManager : MonoBehaviour
         {
             Reset();
             return;
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha1))
+        {
+            EnvironmentManager.drawCoinVision = !EnvironmentManager.drawCoinVision;
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha2))
+        {
+            EnvironmentManager.drawWallVision = !EnvironmentManager.drawWallVision;
         }
 
         if  (Time.time - lastUpdateTime > updateFrequency) 
@@ -50,11 +61,14 @@ public class EnvironmentManager : MonoBehaviour
         env.id = index;
         env.gameObject.SetActive(true);
         float y = 0;
-        if (index > 4) {
-            y = -environmentSpacing;
+        if (index > 2) {
+            y -= environmentSpacing;
+            if (index > 5) {
+                y -= environmentSpacing;
+            }
         }
 
-        env.transform.position = new Vector3((index % 5) * environmentSpacing, 0, y);
+        env.transform.position = new Vector3((index % 3) * environmentSpacing, 0, y);
         env.transform.parent = transform;
         environments[index] = env;
     }

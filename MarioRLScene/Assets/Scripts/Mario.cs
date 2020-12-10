@@ -238,7 +238,10 @@ public class Mario : MonoBehaviour
 
         float y = 1.25f;
         if (isWallVision) {
-            y += 0.1f;
+            y -= 0.1f;
+            lines[index].enabled = EnvironmentManager.drawWallVision;
+        } else {
+            lines[index].enabled = EnvironmentManager.drawCoinVision;
         }
         float z = radius * Mathf.Cos(angle);
         Vector3 rayStart = transform.position;
