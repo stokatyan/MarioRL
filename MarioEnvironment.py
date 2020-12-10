@@ -29,12 +29,12 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self._action_spec = array_spec.BoundedArraySpec(
         shape=(4,), dtype=np.float32, minimum=0, maximum=1, name='action')
 
-    self.COUNT_SMALL_COIN_DISTANCES = 19
+    self.VISION_DISTANCES = 26
     self.OBSERVATION_COUNT = 22
     self.MAX_DISTANCE = 12
     self.COUNT_PREV_MARIO_POS = 0
-    min_distance = [0] * self.COUNT_SMALL_COIN_DISTANCES
-    max_distance = [self.MAX_DISTANCE] * self.COUNT_SMALL_COIN_DISTANCES
+    min_distance = [0] * self.VISION_DISTANCES
+    max_distance = [self.MAX_DISTANCE] * self.VISION_DISTANCES
 
     min_prev_pos = [-4.5] * self.COUNT_PREV_MARIO_POS
     max_prev_pos = [4.5] * self.COUNT_PREV_MARIO_POS
@@ -69,8 +69,6 @@ class MarioEnvironment(py_environment.PyEnvironment):
     self.position_history = []
     self.prev_distance = self.MAX_DISTANCE
     self.min_distance = self.MAX_DISTANCE
-
-    self.MAX_POSITION_HISTORY = 30
 
     self.reset_type = 1
     self.total_reward = 0

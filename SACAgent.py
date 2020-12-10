@@ -50,10 +50,10 @@ constructors = [
 
 eval_constructors = [
   MarioEnvironment.MarioEnvZero, 
-  # MarioEnvironment.MarioEnvOne,
-  # MarioEnvironment.MarioEnvTwo,
-  # MarioEnvironment.MarioEnvThree,
-  # MarioEnvironment.MarioEnvFour,
+  MarioEnvironment.MarioEnvOne,
+  MarioEnvironment.MarioEnvTwo,
+  MarioEnvironment.MarioEnvThree,
+  MarioEnvironment.MarioEnvFour,
 ]
 
 train_py_env = parallel_py_environment.ParallelPyEnvironment(constructors, start_serially=True, blocking=False)
