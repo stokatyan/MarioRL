@@ -16,11 +16,11 @@ public class Mario : MonoBehaviour
     [HideInInspector]
     public Action currentAction;
 
-    float[] distances = new float[19];
+    float[] distances = new float[26];
 
     float visionLineWidth = 0.04f;
 
-    LineRenderer[] lines = new LineRenderer[19]; // 19 coin detectors, 5 wall detectors
+    LineRenderer[] lines = new LineRenderer[26]; // 19 coin detectors, 7 wall detectors
     public Material hitMat, missMat, wallDetectionMat;
 
     Vector3 nearestCoinPosition;
@@ -182,19 +182,38 @@ public class Mario : MonoBehaviour
 
         int distanceIndex = 0;
 
-        for (float i = 1; i <= 10; i++)
+        float coinVisionHalfCount = 10;
+        for (float i = 1; i <= coinVisionHalfCount; i++)
         {
-            Vector3 direction = lft*((10-i)/10) + fwd*((i + i)/10.0f);
-            bool isForward = i == 10;
+            Vector3 direction = lft*((coinVisionHalfCount-i)/coinVisionHalfCount) + fwd*((i + i)/coinVisionHalfCount);
             float d = RaycastToDirection(direction, fwd, distanceIndex, false);
             distances[distanceIndex] = d;
 
             distanceIndex += 1;
         }
-        for (float i = 1; i < 10; i++)
+        for (float i = 1; i < coinVisionHalfCount; i++)
         {
-            Vector3 direction = rht*((i)/10) + fwd*((10-i) * 2/10.0f);
+            Vector3 direction = rht*((i)/coinVisionHalfCount) + fwd*((coinVisionHalfCount-i) * 2/coinVisionHalfCount);
             float d = RaycastToDirection(direction, fwd, distanceIndex, true);
+            distances[distanceIndex] = d;
+
+            distanceIndex += 1;
+        }
+
+
+        float wallVisionHalfCount = 4;
+        for (float i = 1; i <= wallVisionHalfCount; i++)
+        {
+            Vector3 direction = lft*((wallVisionHalfCount-i)/wallVisionHalfCount) + fwd*((i + i)/wallVisionHalfCount);
+            float d = RaycastToDirection(direction, fwd, distanceIndex, false, true);
+            distances[distanceIndex] = d;
+
+            distanceIndex += 1;
+        }
+        for (float i = 1; i < wallVisionHalfCount; i++)
+        {
+            Vector3 direction = rht*((i)/wallVisionHalfCount) + fwd*((wallVisionHalfCount-i) * 2/wallVisionHalfCount);
+            float d = RaycastToDirection(direction, fwd, distanceIndex, true, true);
             distances[distanceIndex] = d;
 
             distanceIndex += 1;
@@ -218,6 +237,9 @@ public class Mario : MonoBehaviour
         }
 
         float y = 1.25f;
+        if (isWallVision) {
+            y += 0.1f;
+        }
         float z = radius * Mathf.Cos(angle);
         Vector3 rayStart = transform.position;
         rayStart.y = y;
@@ -231,7 +253,13 @@ public class Mario : MonoBehaviour
         float hitDistance = maxCoinDistance;
         float endpointDistance = hitDistance;
         Vector3 endpoint;
-        if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, Layers.SmallCoinAndWallMask))
+
+        int mask = Layers.SmallCoinAndWallMask;
+        if (isWallVision) {
+            mask = Layers.WallMask;
+        }
+
+        if (Physics.Raycast(rayStart, direction, out hit, Mathf.Infinity, mask))
         {
             endpointDistance = hit.distance;
 
